@@ -285,7 +285,7 @@ local ex__fanjian = fk.CreateActiveSkill{
       local cards = target:getCardIds(Player.Hand)
       target:showCards(cards)
       local suit = Fk:getCardById(effect.cards[1]).suit
-      local discards = table.filter(cards, function(id)
+      local discards = table.filter(target:getCardIds({ Player.Hand, Player.Equip }), function(id)
         return Fk:getCardById(id).suit == suit
       end)
       room:throwCard(discards, self.name, target)
