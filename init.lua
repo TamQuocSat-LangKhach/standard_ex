@@ -197,7 +197,7 @@ local zhaxiangBuff = fk.CreateTargetModSkill{
   name = "#zhaxiangBuff",
   residue_func = function(self, player, skill, scope)
     if skill.trueName == "slash_skill" and scope == Player.HistoryPhase then
-      return player.phase ~= Player.NotActive and player:usedSkillTimes("zhaxiang")
+      return player.phase ~= Player.NotActive and player:usedSkillTimes("zhaxiang") or 0
     end
   end,
 }
