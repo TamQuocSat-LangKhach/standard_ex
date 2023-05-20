@@ -5,7 +5,7 @@ Fk:loadTranslationTable{
   ["ex"] = "界",
 }
 
-local ex__caocao = General(extension, "ex__caocao", "wei", 4)
+local caocao = General(extension, "ex__caocao", "wei", 4)
 local ex__jianxiong = fk.CreateTriggerSkill{
   name = "ex__jianxiong",
   anim_type = "masochism",
@@ -19,14 +19,15 @@ local ex__jianxiong = fk.CreateTriggerSkill{
     player:drawCards(1, self.name)
   end,
 }
-ex__caocao:addSkill(ex__jianxiong)
+caocao:addSkill(ex__jianxiong)
+caocao:addSkill("hujia")
 Fk:loadTranslationTable{
   ["ex__caocao"] = "界曹操",
   ["ex__jianxiong"] = "奸雄",
   [":ex__jianxiong"] = "当你受到伤害后，你可以获得对你造成伤害的牌并摸一张牌。",
 }
 
-local ex__simayi = General(extension, "ex__simayi", "wei", 3)
+local simayi = General(extension, "ex__simayi", "wei", 3)
 local ex__guicai = fk.CreateTriggerSkill{
   name = "ex__guicai",
   anim_type = "control",
@@ -66,8 +67,8 @@ local ex__fankui = fk.CreateTriggerSkill{
     room:obtainCard(player, card, false, fk.ReasonPrey)
   end
 }
-ex__simayi:addSkill(ex__guicai)
-ex__simayi:addSkill(ex__fankui)
+simayi:addSkill(ex__guicai)
+simayi:addSkill(ex__fankui)
 Fk:loadTranslationTable{
   ["ex__simayi"] = "界司马懿",
   ["ex__guicai"] = "鬼才",
@@ -78,7 +79,7 @@ Fk:loadTranslationTable{
 
 --夏侯惇
 
-local ex__zhangliao = General(extension, "ex__zhangliao", "wei", 4)
+local zhangliao = General(extension, "ex__zhangliao", "wei", 4)
 local ex__tuxi = fk.CreateTriggerSkill{
   name = "ex__tuxi",
   anim_type = "control",
@@ -106,7 +107,7 @@ local ex__tuxi = fk.CreateTriggerSkill{
     data.n = data.n - #self.cost_data
   end,
 }
-ex__zhangliao:addSkill(ex__tuxi)
+zhangliao:addSkill(ex__tuxi)
 Fk:loadTranslationTable{
   ["ex__zhangliao"] = "界张辽",
   ["ex__tuxi"] = "突袭",
@@ -171,7 +172,7 @@ Fk:loadTranslationTable{
   ["#wangxi-invoke"] = "忘隙：你可以与 %dest 各摸一张牌",
 }
 
-local ex__sunquan = General(extension, "ex__sunquan", "wu", 4)
+local sunquan = General(extension, "ex__sunquan", "wu", 4)
 local ex__zhiheng = fk.CreateActiveSkill{
   name = "ex__zhiheng",
   anim_type = "drawcard",
@@ -194,17 +195,75 @@ local ex__zhiheng = fk.CreateActiveSkill{
     room:drawCards(from, #effect.cards + (more and 1 or 0), self.name)
   end
 }
-ex__sunquan:addSkill(ex__zhiheng)
+sunquan:addSkill(ex__zhiheng)
+sunquan:addSkill("jiuyuan")
 Fk:loadTranslationTable{
   ["ex__sunquan"] = "界孙权",
   ["ex__zhiheng"] = "制衡",
   [":ex__zhiheng"] = "出牌阶段限一次，你可以弃置任意张牌并摸等量的牌。若你以此法弃置了所有的手牌，你多摸一张牌。",
 }
 
---甘宁
---吕蒙
+local ganning = General(extension, "ex__ganning", "wu", 4)
+local fenwei = fk.CreateTriggerSkill{
+  name = "fenwei",
+  anim_type = "defensive",
+  frequency = Skill.Limited,
+  events = {fk.TargetSpecified},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.card.type == Card.TypeTrick and #AimGroup:getAllTargets(data.tos) > 1 and
+      player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  on_cost = function(self, event, target, player, data)
+    local tos = player.room:askForChoosePlayers(player, AimGroup:getAllTargets(data.tos),
+      1, 10, "#fenwei-choose:::"..data.card:toLogString(), self.name, true)
+    if #tos > 0 then
+      self.cost_data = tos
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    table.insertTable(data.nullifiedTargets, self.cost_data)
+  end,
+}
+ganning:addSkill("qixi")
+ganning:addSkill(fenwei)
+Fk:loadTranslationTable{
+  ["ex__ganning"] = "界甘宁",
+  ["fenwei"] = "奋威",
+  [":fenwei"] = "限定技，当一张锦囊牌指定多个目标后，你可令此牌对其中任意个目标无效。",
+  ["#fenwei-choose"] = "奋威：你可以令此%arg对任意个目标无效",
+}
 
-local ex__huanggai = General(extension, "ex__huanggai", "wu", 4)
+local lvmeng = General(extension, "ex__lvmeng", "wu", 4)
+local qinxue = fk.CreateTriggerSkill{
+  name = "qinxue",
+  frequency = Skill.Wake,
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      player.phase == Player.Start and
+      player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+  end,
+  can_wake = function(self, event, target, player, data)
+    return (#player.player_cards[Player.Hand] - player.hp > 2) or
+      (#player.room:getAllPlayers() > 7 and #player.player_cards[Player.Hand] - player.hp > 1)
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:changeMaxHp(player, -1)
+    room:handleAddLoseSkills(player, "gongxin", nil)
+  end,
+}
+lvmeng:addSkill("keji")
+lvmeng:addSkill(qinxue)
+lvmeng:addRelatedSkill("gongxin")
+Fk:loadTranslationTable{
+  ["ex__lvmeng"] = "界吕蒙",
+  ["qinxue"] = "勤学",
+  [":qinxue"] = "觉醒技，准备阶段，若你的手牌数比体力值多3或更多（游戏人数大于7则改为2），你减1点体力上限，然后获得技能〖攻心〗。",
+}
+
+local huanggai = General(extension, "ex__huanggai", "wu", 4)
 local ex__kurou = fk.CreateActiveSkill{
   name = "ex__kurou",
   anim_type = "negative",
@@ -234,15 +293,14 @@ local zhaxiang_targetmod = fk.CreateTargetModSkill{
     end
   end,
 }
-local zhaxiangHit = fk.CreateTriggerSkill{
-  name = "#zhaxiangHit",
+local zhaxiang_trigger = fk.CreateTriggerSkill{
+  name = "#zhaxiang_trigger",
   mute = true,
   frequency = Skill.Compulsory,
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self.name) and
-      data.card.trueName == "slash" and data.card.color == Card.Red and
-      player.phase  == Player.Play and player:usedSkillTimes("zhaxiang", Player.HistoryPhase) > 0
+      data.card.trueName == "slash" and data.card.color == Card.Red and player:usedSkillTimes("zhaxiang", Player.HistoryPhase) > 0
   end,
   on_use = function(self, event, target, player, data)
     data.disresponsive = true
@@ -263,9 +321,9 @@ local zhaxiang = fk.CreateTriggerSkill{
   end,
 }
 zhaxiang:addRelatedSkill(zhaxiang_targetmod)
-zhaxiang:addRelatedSkill(zhaxiangHit)
-ex__huanggai:addSkill(ex__kurou)
-ex__huanggai:addSkill(zhaxiang)
+zhaxiang:addRelatedSkill(zhaxiang_trigger)
+huanggai:addSkill(ex__kurou)
+huanggai:addSkill(zhaxiang)
 Fk:loadTranslationTable{
   ["ex__huanggai"] = "界黄盖",
   ["ex__kurou"] = "苦肉",
@@ -276,7 +334,7 @@ Fk:loadTranslationTable{
   ["#zhaxiangHit"] = "诈降",
 }
 
-local ex__zhouyu = General(extension, "ex__zhouyu", "wu", 3)
+local zhouyu = General(extension, "ex__zhouyu", "wu", 3)
 local ex__yingzi = fk.CreateTriggerSkill{
   name = "ex__yingzi",
   anim_type = "drawcard",
@@ -326,8 +384,8 @@ local ex__fanjian = fk.CreateActiveSkill{
   end,
 }
 ex__yingzi:addRelatedSkill(ex__yingzi_maxcards)
-ex__zhouyu:addSkill(ex__yingzi)
-ex__zhouyu:addSkill(ex__fanjian)
+zhouyu:addSkill(ex__yingzi)
+zhouyu:addSkill(ex__fanjian)
 Fk:loadTranslationTable{
   ["ex__zhouyu"] = "界周瑜",
   ["ex__yingzi"] = "英姿",
@@ -337,7 +395,7 @@ Fk:loadTranslationTable{
   ["ex__fanjian_show"] = "展示手牌，然后弃置所有花色相同的牌",
 }
 
-local ex__daqiao = General(extension, "ex__daqiao", "wu", 3, 3, General.Female)
+local daqiao = General(extension, "ex__daqiao", "wu", 3, 3, General.Female)
 local ex__guose = fk.CreateActiveSkill{
   name = "ex__guose",
   anim_type = "control",
@@ -375,8 +433,8 @@ local ex__guose = fk.CreateActiveSkill{
     player:drawCards(1, self.name)
   end,
 }
-ex__daqiao:addSkill(ex__guose)
-ex__daqiao:addSkill("liuli")
+daqiao:addSkill(ex__guose)
+daqiao:addSkill("liuli")
 Fk:loadTranslationTable{
   ["ex__daqiao"] = "界大乔",
   ["ex__guose"] = "国色",
@@ -386,7 +444,7 @@ Fk:loadTranslationTable{
 --陆逊
 
 --华佗
-local ex__huatuo = General(extension, "ex__huatuo", "qun", 3)
+local huatuo = General(extension, "ex__huatuo", "qun", 3)
 local chuli = fk.CreateActiveSkill{
   name = "chuli",
   anim_type = "control",
@@ -423,8 +481,8 @@ local chuli = fk.CreateActiveSkill{
     end
   end,
 }
-ex__huatuo:addSkill("jijiu")
-ex__huatuo:addSkill(chuli)
+huatuo:addSkill("jijiu")
+huatuo:addSkill(chuli)
 Fk:loadTranslationTable{
   ["ex__huatuo"] = "界华佗",
   ["chuli"] = "除疠",
