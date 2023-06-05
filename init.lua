@@ -394,7 +394,68 @@ Fk:loadTranslationTable{
   [":ex__fanjian"] = "出牌阶段限一次，你可以交给一名其他角色一张牌，然后其选择：1.展示所有手牌，然后弃置花色和你交给的牌的花色相同的所有牌；2.失去1点体力。",
   ["ex__fanjian_show"] = "展示手牌，然后弃置所有花色相同的牌",
 }
-
+local sunshangxiang = General(extension, "ex__sunshangxiang", "wu", 3, 3, General.Female)
+local ex__jieyin = fk.CreateActiveSkill{
+  name = "ex__jieyin",
+  anim_type = "support",
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return #selected ==0
+  end,
+  target_filter = function(self, to_select, selected, cards)
+    local target = Fk:currentRoom():getPlayerById(to_select)
+     if #cards == 1 and Fk:getCardById(cards[1]).type ~= Card.TypeEquip then
+       return target.gender == General.Male and #selected == 0
+     else 
+       return #selected == 0 and #cards == 1 and Fk:currentRoom():getPlayerById(to_select):getEquipment(Fk:getCardById(cards[1]).sub_type) == nil and target.gender == General.Male
+     end
+  end,
+  target_num = 1,
+  card_num = 1,
+  on_use = function(self, room, effect)
+    local from = room:getPlayerById(effect.from)
+    local tos = room:getPlayerById(effect.tos[1])
+    if Fk:getCardById(effect.cards[1]).type ==      Card.TypeEquip then
+      room:moveCards({
+        ids = effect.cards,
+       from = effect.from,
+       to = effect.tos[1],
+        toArea = Card.PlayerEquip,
+       moveReason = fk.ReasonPut,
+      })
+    else  
+      room:throwCard(effect.cards, self.name, from)
+    end
+    if tos.hp < from.hp then
+      room:recover({
+        who = room:getPlayerById(effect.tos[1]),
+        num = 1,
+        recoverBy = effect.from,
+        skillName = self.name
+      })  
+       from:drawCards(1, self.name)
+    else
+      if from:isWounded() then
+        room:recover({
+          who = room:getPlayerById(effect.from),
+         num = 1,
+         recoverBy = effect.from,
+         skillName = self.name
+        }) 
+      end
+      tos:drawCards(1, self.name)
+    end
+  end,
+}
+sunshangxiang:addSkill(ex__jieyin)
+sunshangxiang:addSkill("xiaoji")
+Fk:loadTranslationTable{
+  ["ex__sunshangxiang"] = "界孙尚香",
+  ["ex__jieyin"] = "结姻",
+  [":ex__jieyin"] = "出牌阶段限一次，你可以弃置一张牌选择一名其他男性角色或者将一张装备区的牌置入一名其他男性角色的装备区，然后你与其体力值较少的角色恢复一点体力，较多的角色摸一张牌。",
+}
 local daqiao = General(extension, "ex__daqiao", "wu", 3, 3, General.Female)
 local ex__guose = fk.CreateActiveSkill{
   name = "ex__guose",
@@ -490,7 +551,116 @@ Fk:loadTranslationTable{
 }
 --吕布
 --貂蝉
+local ex__biyue = fk.CreateTriggerSkill{
+  name = "ex__biyue",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name)
+      and player.phase == Player.Finish
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(player:isKongcheng() and 2 or 1, self.name)
+  end,
+}
+local diaochan = General:new(extension, "ex__diaochan", "qun", 3, 3, General.Female)
+diaochan:addSkill("lijian")
+diaochan:addSkill(ex__biyue)
+Fk:loadTranslationTable{
+  ["ex__huaxiong"] = "界貂蝉",
+  ["ex__biyue"] = "闭月",
+  [":ex__biyue"] = "回合结束时，你可以摸一张牌，若你没有手牌则改为两张。",
+}
 --华雄
+local yaowu = fk.CreateTriggerSkill{
+  name = "yaowu",
+  anim_type = "negative",
+  frequency = Skill.Compulsory,
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+     if data.chain then return end
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red and data.from ~= nil
+  end,
+   on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    local choices = {"draw1", "Cancel"}
+    if from:isWounded() then
+      table.insert(choices, 2, "recover")
+    end
+       self.cost_data = room:askForChoice(from, choices, self.name) return self.cost_data ~= "Cancel"
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    if self.cost_data == "recover" then
+      room:recover({
+        who = from,
+        num = 1,
+        recoverBy = from,
+        skillName = self.name
+      })
+    elseif self.cost_data == "draw1" then
+      from:drawCards(1, self.name)
+    end
+  end,
+}
+local huaxiong = General(extension, "bz__huaxiong", "qun", 6)
+huaxiong:addSkill(yaowu)
+Fk:loadTranslationTable{
+  ["bz__huaxiong"] = "华雄",
+  ["yaowu"] = "耀武",
+  [":yaowu"] = "锁定技，当你因受到红色杀造成的伤害时，伤害来源可以选择一项:①回复一点体力。;②摸一张牌。",
+}
+local ex__yaowu = fk.CreateTriggerSkill{
+  name = "ex__yaowu",
+  anim_type = "negative",
+  frequency = Skill.Compulsory,
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+     if data.chain then return end
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red and data.from ~= nil
+  end,
+   on_cost = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    local choices = {"draw1", "Cancel"}
+    if from:isWounded() then
+      table.insert(choices, 2, "recover")
+    end
+       self.cost_data = room:askForChoice(from, choices, self.name) return self.cost_data ~= "Cancel"
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    if self.cost_data == "recover" then
+      room:recover({
+        who = from,
+        num = 1,
+        recoverBy = from,
+        skillName = self.name
+      })
+    elseif self.cost_data == "draw1" then
+      from:drawCards(1, self.name)
+    end
+  end,
+  
+  refresh_events = {fk.DamageCaused},
+  can_refresh = function(self, event, target, player, data)
+     return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.card.color == Card.Black 
+  end,
+  on_refresh = function(self, event, target, player, data)
+    
+   player:drawCards(1, self.name)
+  end,
+}
+local huaxiong = General(extension, "ex__huaxiong", "qun", 6)
+huaxiong:addSkill(ex__yaowu)
+Fk:loadTranslationTable{
+  ["ex__huaxiong"] = "界华雄",
+  ["ex__yaowu"] = "耀武",
+  [":ex__yaowu"] = "锁定技，当你因受到杀造成的伤害时，若此杀为红色，伤害来源可以选择一项:①回复一点体力。;②摸一张牌。;若此杀为黑色，你摸一张牌。",
+}
 --袁术
 --公孙瓒
 
