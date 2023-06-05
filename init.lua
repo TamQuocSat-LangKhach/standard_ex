@@ -567,7 +567,7 @@ local diaochan = General:new(extension, "ex__diaochan", "qun", 3, 3, General.Fem
 diaochan:addSkill("lijian")
 diaochan:addSkill(ex__biyue)
 Fk:loadTranslationTable{
-  ["ex__huaxiong"] = "界貂蝉",
+  ["ex__diaochan"] = "界貂蝉",
   ["ex__biyue"] = "闭月",
   [":ex__biyue"] = "回合结束时，你可以摸一张牌，若你没有手牌则改为两张。",
 }
@@ -576,7 +576,7 @@ local yaowu = fk.CreateTriggerSkill{
   name = "yaowu",
   anim_type = "negative",
   frequency = Skill.Compulsory,
-  events = {fk.DamageCaused},
+  events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
      if data.chain then return end
     return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red and data.from ~= nil
@@ -616,7 +616,7 @@ local ex__yaowu = fk.CreateTriggerSkill{
   name = "ex__yaowu",
   anim_type = "negative",
   frequency = Skill.Compulsory,
-  events = {fk.DamageCaused},
+  events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
      if data.chain then return end
     return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red and data.from ~= nil
@@ -645,7 +645,7 @@ local ex__yaowu = fk.CreateTriggerSkill{
     end
   end,
   
-  refresh_events = {fk.DamageCaused},
+  refresh_events = {fk.DamageInflicted},
   can_refresh = function(self, event, target, player, data)
      return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.card.color == Card.Black 
   end,
