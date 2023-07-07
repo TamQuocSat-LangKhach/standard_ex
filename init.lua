@@ -13,11 +13,13 @@ local ex__jianxiong = fk.CreateTriggerSkill{
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
     local room = target.room
-    return target == player and player:hasSkill(self.name) and data.card and room:getCardArea(data.card) == Card.Processing
+    return target == player and player:hasSkill(self.name) 
   end,
   on_use = function(self, event, target, player, data)
-    player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
-    player:drawCards(1, self.name)
+    if data.card and room:getCardArea(data.card) == Card.Processing then
+      player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
+    end
+     player:drawCards(1, self.name)
   end,
 }
 caocao:addSkill(ex__jianxiong)
@@ -418,7 +420,7 @@ local ex__jieyin = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
     local tos = room:getPlayerById(effect.tos[1])
-    if Fk:getCardById(effect.cards[1]).type ==      Card.TypeEquip then
+    if Fk:getCardById(effect.cards[1]).type == Card.TypeEquip then
       room:moveCards({
         ids = effect.cards,
        from = effect.from,
@@ -430,19 +432,21 @@ local ex__jieyin = fk.CreateActiveSkill{
       room:throwCard(effect.cards, self.name, from)
     end
     if tos.hp < from.hp then
-      room:recover({
-        who = room:getPlayerById(effect.tos[1]),
-        num = 1,
-        recoverBy = effect.from,
-        skillName = self.name
-      })  
-       from:drawCards(1, self.name)
+      if tos:isWounded() then
+         room:recover({
+           who = tos,
+           num = 1,
+           recoverBy = tos,
+           skillName = self.name
+         })  
+      end
+     from:drawCards(1, self.name)    
     else
       if from:isWounded() then
         room:recover({
-          who = room:getPlayerById(effect.from),
+          who = from,
          num = 1,
-         recoverBy = effect.from,
+         recoverBy = from,
          skillName = self.name
         }) 
       end
@@ -685,7 +689,8 @@ local ex__tieji = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = room:getPlayerById(data.to)
-    room:setPlayerMark(to, "@tieji-turn",1)
+    room:addPlayerMark(to, "@@tieji-turn")
+    room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
     local judge = {
       who = player,
       reason = self.name,
@@ -701,20 +706,9 @@ local ex__tieji = fk.CreateTriggerSkill{
     end
   end,
 }
-local ex__tieji_invalidity = fk.CreateInvaliditySkill {
-  name = "#ex__tieji_invalidity",
-  invalidity_func = function(self, from, skill)
-    if table.contains(from.player_skills, skill) and skill.frequency ~= Skill.Compulsory and skill.frequency ~= Skill.Wake
-        and not (skill.attached_equip or skill.name:endsWith("&")) then
-      return  table.find(Fk:currentRoom().alive_players, function(p)
-        return p:getMark("@tieji-turn") ~= 0
-      end)
-    end
-  end,
-}
+
 local machao = General:new(extension, "ex__machao", "shu", 4)
 machao.subkingdom = "god"
-ex__tieji:addRelatedSkill(ex__tieji_invalidity)
 machao:addSkill("mashu")
 machao:addSkill(ex__tieji)
 Fk:loadTranslationTable{
@@ -722,7 +716,7 @@ Fk:loadTranslationTable{
   ["ex__tieji"] = "铁骑",
   [":ex__tieji"] = "当你使用杀指定目标时，你可以令其本回合内非锁定技失效，然后进行一次判定，其需弃置一张花色与判定结果花色相同的牌，否则其无法响应此杀。",
   ["ex__tieji_invalidity"] = "铁骑",
-  ["@tieji-turn"] = "铁骑",
+  ["@@tieji-turn"] = "铁骑",
   ["#ex__tieji-discard"] = "铁骑：你需弃置一张%arg牌，否则无法响应此杀。",
 }
 local ex__longdan = fk.CreateViewAsSkill{
@@ -861,7 +855,7 @@ local ex__wusheng = fk.CreateViewAsSkill{
 }
 local ex__yijue = fk.CreateActiveSkill{
   name = "ex__yijue",
-  anim_type = "negative",
+  anim_type = "offensive",
   card_num = 1,
   target_num = 1,
   target_filter = function(self, to_select)
@@ -877,17 +871,17 @@ local ex__yijue = fk.CreateActiveSkill{
    
     if to:isKongcheng() then return end
 
-    local showCard = room:askForCard(to, 1, 1, false, self.name, false, nil, "#yijue-show:" .. from.id)[1]
+    local showCard = room:askForCard(to, 1, 1, false, self.name, false, nil, "#yijue-show::"..from.id)[1]
     to:showCards(showCard)
  
     showCard = Fk:getCardById(showCard)
     if showCard.color == Card.Black then
-      room:setPlayerMark(to, "@yijue-turn",1)
+      room:addPlayerMark(to, "@@yijue-turn")
       room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
     else
       room:obtainCard(from, showCard, true, fk.ReasonGive)
        if to:isWounded() then
-         if room:askForSkillInvoke(from, self.name, nil, "#yijue-recover:::"..to.id) then
+         if room:askForSkillInvoke(from, self.name, nil, "#yijue-recover::"..to.id) then
            room:recover({
               who = to.id,
              num = 1,
@@ -902,19 +896,20 @@ local ex__yijue = fk.CreateActiveSkill{
 local yijue_prohibit = fk.CreateProhibitSkill{
   name = "#yijue_prohibit",
   prohibit_use = function(self, player, card)
-    return player:getMark("@yijue-turn") > 0
+    return player:getMark("@@yijue-turn") > 0
   end,
   prohibit_response = function(self, player, card)
-    return player:getMark("@yijue-turn") > 0
+    return player:getMark("@@yijue-turn") > 0
   end,
 }
 local yijue_trigger = fk.CreateTriggerSkill{
   name = "#yijue_trigger",
   anim_type = "offensive",
   frequency = Skill.Compulsory,
+  mute = true,
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.card.suit == Card.Heart and data.to:getMark("@yijue-turn") ~= 0 and not data.chain 
+    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.card.suit == Card.Heart and data.to:getMark("@@yijue-turn") ~= 0 and not data.chain 
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
@@ -933,8 +928,8 @@ Fk:loadTranslationTable{
   [":ex__wusheng"] = "①你可以将一张红色牌当做【杀】使用或打出;②锁定技，你使用♦️【杀】无距离限制",
   ["ex__yijue"] = "义绝",
   [":ex__yijue"] = "出牌阶段限一次，你可以弃置一张牌并令一名有手牌的其他角色展示一张手牌。若此牌为黑色，则该角色不能使用或打出牌，非锁定技失效且受到来自你的红桃【杀】的伤害+1直到回合结束。若此牌为红色，则你获得此牌，并可以令其回复一点体力",
-  ["@yijue-turn"] = "义绝",
-  ["#yijue-recover"] = "义绝:是否令%arg恢复一点体力？",
+  ["@@yijue-turn"] = "义绝",
+  ["#yijue-recover"] = "义绝:是否令%dest恢复一点体力？",
 }
 
 local ex__paoxiaoAudio = fk.CreateTriggerSkill{
@@ -1025,6 +1020,7 @@ Fk:loadTranslationTable{
   ["ex__tishen"] = "替身",
   [":ex__tishen"] = "限定技，准备阶段，若你已受伤，则你可以将体力值回复至上限，然后摸回复数值张牌。",
   ["@paoxiao-turn"] = "咆",
+  ["#ex__paoxiao_trigger"] = "咆哮",
   ["#tishen-invoke"] = "替身:是否发动替身?回复%arg点体力并摸等量张牌？",
 }
 local ex__jizhi = fk.CreateTriggerSkill{
