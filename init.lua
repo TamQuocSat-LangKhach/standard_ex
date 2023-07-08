@@ -12,11 +12,10 @@ local ex__jianxiong = fk.CreateTriggerSkill{
   anim_type = "masochism",
   events = {fk.Damaged},
   can_trigger = function(self, event, target, player, data)
-    local room = target.room
     return target == player and player:hasSkill(self.name) 
   end,
   on_use = function(self, event, target, player, data)
-    if data.card and room:getCardArea(data.card) == Card.Processing then
+    if data.card and target.room:getCardArea(data.card) == Card.Processing then
       player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
     end
      player:drawCards(1, self.name)
@@ -28,6 +27,9 @@ Fk:loadTranslationTable{
   ["ex__caocao"] = "界曹操",
   ["ex__jianxiong"] = "奸雄",
   [":ex__jianxiong"] = "当你受到伤害后，你可以获得对你造成伤害的牌并摸一张牌。",
+  ["$ex__jianxiong1"] = "燕雀，安知鸿鹄之志!",
+  ["$ex__jianxiong2"] = "夫英雄者，胸怀大志，腹有良谋!",
+  ["~ex__caocao"] = "华佗何在?.....",
 }
 
 local simayi = General(extension, "ex__simayi", "wei", 3)
@@ -204,6 +206,9 @@ Fk:loadTranslationTable{
   ["ex__sunquan"] = "界孙权",
   ["ex__zhiheng"] = "制衡",
   [":ex__zhiheng"] = "出牌阶段限一次，你可以弃置任意张牌并摸等量的牌。若你以此法弃置了所有的手牌，你多摸一张牌。",
+  ["$ex__zhiheng1"] = "不急不躁，稳谋应对!",
+  ["$ex__zhiheng2"] = "制衡互牵，大局可安!",
+  ["~ex__sunquan"] = "锦绣江东，岂能失于我手.....",
 }
 
 local ganning = General(extension, "ex__ganning", "wu", 4)
@@ -335,6 +340,11 @@ Fk:loadTranslationTable{
   [":zhaxiang"] = "锁定技，每当你失去1点体力，你摸三张牌，然后若此时是你的出牌阶段，"..
   "则此阶段你使用【杀】次数上限+1、使用红色【杀】无距离限制且不可被响应。",
   ["#zhaxiangHit"] = "诈降",
+  ["$ex__kurou1"] = "我这把老骨头，不算什么!",
+  ["$ex__kurou2"] = "未成大业，死不足惜!",
+  ["$ex__zhaxiang1"] = "铁锁连舟而行，东吴水师可破!",
+  ["$ex__zhaxiang2"] = "两军阵前，不斩降将!",
+  ["~ex__huanggai"] = "盖，有负公瑾重托.....",
 }
 
 local zhouyu = General(extension, "ex__zhouyu", "wu", 3)
@@ -396,6 +406,11 @@ Fk:loadTranslationTable{
   ["ex__fanjian"] = "反间",
   [":ex__fanjian"] = "出牌阶段限一次，你可以交给一名其他角色一张牌，然后其选择：1.展示所有手牌，然后弃置花色和你交给的牌的花色相同的所有牌；2.失去1点体力。",
   ["ex__fanjian_show"] = "展示手牌，然后弃置所有花色相同的牌",
+  ["$ex__yingzi1"] = "哈哈哈哈...!",
+  ["$ex__yingzi2"] = "伯符，且看我这一手!",
+  ["$ex__fanjian1"] = "与我为敌，就当这般生不如死!",
+  ["$ex__fanjian2"] = "抉择吧! 在苦与痛的地狱中!",
+  ["~ex__zhouyu"] = "既生瑜，何生亮!..既生瑜，何生亮..!",
 }
 local sunshangxiang = General(extension, "ex__sunshangxiang", "wu", 3, 3, General.Female)
 local ex__jieyin = fk.CreateActiveSkill{
@@ -460,6 +475,9 @@ Fk:loadTranslationTable{
   ["ex__sunshangxiang"] = "界孙尚香",
   ["ex__jieyin"] = "结姻",
   [":ex__jieyin"] = "出牌阶段限一次，你可以弃置一张牌选择一名其他男性角色或者将一张装备牌置入一名其他男性角色的装备区，然后你与其体力值较少的角色恢复一点体力，较多的角色摸一张牌。",
+  ["$ex__jieyin1"] = "随夫嫁娶，宜室宜家!",
+  ["$ex__jieyin2"] = "得遇夫君，妾身福分!",
+  ["~ex__sunshangxiang"] = "就这样... 结束了吗.....",
 }
 local daqiao = General(extension, "ex__daqiao", "wu", 3, 3, General.Female)
 local ex__guose = fk.CreateActiveSkill{
@@ -718,6 +736,9 @@ Fk:loadTranslationTable{
   ["ex__tieji_invalidity"] = "铁骑",
   ["@@tieji-turn"] = "铁骑",
   ["#ex__tieji-discard"] = "铁骑：你需弃置一张%arg牌，否则无法响应此杀。",
+  ["$ex__tieji1"] = "敌人阵型已乱，随我杀!",
+  ["$ex__tieji2"] = "目标敌阵，全军突击!",
+  ["~ex__machao"] = "请将我，葬在西凉.....",
 }
 local ex__longdan = fk.CreateViewAsSkill{
   name = "ex__longdan",
@@ -824,6 +845,11 @@ Fk:loadTranslationTable{
   [":yajiao"] = "当你于回合外因使用或打出而失去手牌后，你可以展示牌堆顶的一张牌。若这两张牌的类别相同，你可以将展示的牌交给一名角色；若类别不同，你可弃置攻击范围内包含你的角色区域里的一张牌。",
   ["#yajiao-choose"] = "涯角: 选择一名攻击范围内包含你的角色弃置其区域内的一张牌。",
   ["#yajiao-card"] = "涯角:将 %arg交给一名角色。",
+  ["$ex__longdan1"] = "龙威虎胆，斩敌破阵!",
+  ["$ex__longdan2"] = "进退自如，游刃有余!",
+  ["$yajiao1"] = "遍寻天下，但求一败!",
+  ["$yajiao2"] = "策马驱前，斩敌当先!",
+  ["~ex__zhaoyun"] = "你们谁.. 还敢再上.....",
 }
 local wusheng_targetmod = fk.CreateTargetModSkill{
   name = "#wusheng_targetmod",
@@ -930,6 +956,11 @@ Fk:loadTranslationTable{
   [":ex__yijue"] = "出牌阶段限一次，你可以弃置一张牌并令一名有手牌的其他角色展示一张手牌。若此牌为黑色，则该角色不能使用或打出牌，非锁定技失效且受到来自你的红桃【杀】的伤害+1直到回合结束。若此牌为红色，则你获得此牌，并可以令其回复一点体力",
   ["@@yijue-turn"] = "义绝",
   ["#yijue-recover"] = "义绝:是否令%dest恢复一点体力？",
+  ["$ex__wusheng1"] = "刀锋所向，战无不克!",
+  ["$ex__wusheng2"] = "逆贼，哪里走!",
+  ["$ex__yijue1"] = "关某，向来恩怨分明!",
+  ["$ex__yijue2"] = "恩已断，义当绝!",
+  ["~ex__guanyu"] = "桃园一拜.. 恩义常在.....",
 }
 
 local ex__paoxiaoAudio = fk.CreateTriggerSkill{
@@ -1022,6 +1053,13 @@ Fk:loadTranslationTable{
   ["@paoxiao-turn"] = "咆",
   ["#ex__paoxiao_trigger"] = "咆哮",
   ["#tishen-invoke"] = "替身:是否发动替身?回复%arg点体力并摸等量张牌？",
+  
+  ["$ex__paoxiao1"] = "喝!~",
+  ["$ex__paoxiao2"] = "今，必斩汝马下!",
+  ["$ex__tishen1"] = "欺我无谋，定要尔等血偿!",
+  ["$ex__tishen2"] = "谁?还敢过来一战!",
+  ["~ex__zhangfei"] = "桃园一拜.. 此生..无憾.....",
+  
 }
 local ex__jizhi = fk.CreateTriggerSkill{
   name = "ex__jizhi",
