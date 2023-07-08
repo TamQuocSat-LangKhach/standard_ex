@@ -41,7 +41,7 @@ local ex__guicai = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForResponse(player, self.name, ".", "#guicai-ask::" .. target.id, true)
+    local card = player.room:askForResponse(player, self.name, ".|.|.|hand,equip|.|", "#guicai-ask::" .. target.id, true)
     if card ~= nil then
       self.cost_data = card
       return true
@@ -373,15 +373,15 @@ local ex__fanjian = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
   end,
-  card_filter = function(self, _, selected)
-    return #selected == 0
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Card.PlayerEquip
   end,
   target_filter = function(self, to_select, selected)
     return #selected == 0 and to_select ~= Self.id
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
-    room:obtainCard(target.id, effect.cards[1], false, fk.ReasonGive)
+    room:obtainCard(target.id, effect.cards[1], true, fk.ReasonGive)
     local choice = room:askForChoice(target, { "ex__fanjian_show", "loseHp" }, self.name)
     if choice == "loseHp" then
       room:loseHp(target, 1, self.name)
@@ -404,7 +404,7 @@ Fk:loadTranslationTable{
   ["ex__yingzi"] = "英姿",
   [":ex__yingzi"] = "锁定技，摸牌阶段，你多摸一张牌；你的手牌上限等同于你的体力上限。",
   ["ex__fanjian"] = "反间",
-  [":ex__fanjian"] = "出牌阶段限一次，你可以交给一名其他角色一张牌，然后其选择：1.展示所有手牌，然后弃置花色和你交给的牌的花色相同的所有牌；2.失去1点体力。",
+  [":ex__fanjian"] = "出牌阶段限一次，你可以展示一张手牌并交给一名其他角色，然后其选择：1.展示所有手牌，然后弃置花色和你交给的牌的花色相同的所有牌；2.失去1点体力。",
   ["ex__fanjian_show"] = "展示手牌，然后弃置所有花色相同的牌",
   ["$ex__yingzi1"] = "哈哈哈哈...!",
   ["$ex__yingzi2"] = "伯符，且看我这一手!",
