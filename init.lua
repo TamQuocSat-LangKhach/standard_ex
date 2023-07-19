@@ -84,6 +84,7 @@ Fk:loadTranslationTable{
 
 --夏侯惇
 
+--张辽
 local zhangliao = General(extension, "ex__zhangliao", "wei", 4)
 local ex__tuxi = fk.CreateTriggerSkill{
   name = "ex__tuxi",
@@ -121,6 +122,71 @@ Fk:loadTranslationTable{
 }
 
 --许褚
+local xuchu = General(extension, "ex__xuchu", "wei", 4)
+local ex__luoyi = fk.CreateTriggerSkill{
+  name = "ex__luoyi",
+  anim_type = "offensive",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and player.phase == Player.Draw
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local cids = room:getNCards(3)
+    room:moveCardTo(cids, Card.Processing, nil, fk.ReasonJustMove, self.name)
+    if room:askForChoice(player, {"ex__luoyi_get", "Cancel"}, self.name) == "ex__luoyi_get" then
+      local cards = {}
+      for _, id in ipairs(cids) do
+        local card = Fk:getCardById(id)
+        if card.type == Card.TypeBasic or card.sub_type == Card.SubtypeWeapon or card.name == "duel" then
+          table.insert(cards, id)
+        end
+      end
+      if #cards > 0 then
+        local dummy = Fk:cloneCard("slash")
+        dummy:addSubcards(cards)
+        room:obtainCard(player, dummy, true, Fk.ReasonJustMove)
+      end
+      room:addPlayerMark(player, "@@ex__luoyi")
+      return true
+    end
+  end,
+}
+local ex__luoyi_trigger = fk.CreateTriggerSkill{
+  name = "#ex__luoyi_trigger",
+  mute = true,
+  events = {fk.DamageCaused},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:getMark("@@ex__luoyi") > 0 and
+      not data.chain and data.card and (data.card.trueName == "slash" or data.card.name == "duel")
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:broadcastSkillInvoke("ex__luoyi")
+    room:notifySkillInvoked(player, "ex__luoyi")
+    data.damage = data.damage + 1
+  end,
+
+  refresh_events = {fk.EventPhaseChanging, fk.Death},
+  can_refresh = function(self, event, target, player, data)
+    return target == player and player:getMark("@@ex__luoyi") ~= 0 and (event == fk.Death or data.from == Player.NotActive)
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:setPlayerMark(player, "@@ex__luoyi", 0)
+  end,
+}
+ex__luoyi:addRelatedSkill(ex__luoyi_trigger)
+xuchu:addSkill(ex__luoyi)
+Fk:loadTranslationTable{
+  ["ex__xuchu"] = "界许褚",
+  ["ex__luoyi"] = "裸衣",
+  [":ex__luoyi"] = "摸牌阶段开始时，你亮出牌堆顶的三张牌，然后你可以获得其中的基本牌、武器牌或【决斗】。若如此做，你放弃摸牌，且直到你的下个回合开始，你为伤害来源的【杀】或【决斗】造成的伤害值+1。",
+
+  ["ex__luoyi_get"] = "获得其中的基本牌、武器牌或【决斗】",
+  ["@@ex__luoyi"] = "裸衣",
+  ["ex__luoyi_trigger"] = "裸衣",
+}
 --郭嘉
 local lidian = General(extension, "lidian", "wei", 3)
 local xunxun = fk.CreateTriggerSkill{
