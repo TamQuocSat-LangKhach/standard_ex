@@ -1225,7 +1225,7 @@ local yijue_trigger = fk.CreateTriggerSkill{
   mute = true,
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self.name) and data.card.trueName == "slash" and data.card.suit == Card.Heart and data.to:getMark("@@yijue-turn") ~= 0 and not data.chain 
+    return target == player and player:hasSkill(self.name) and data.card and data.card.trueName == "slash" and data.card.suit == Card.Heart and data.to:getMark("@@yijue-turn") ~= 0 and not data.chain 
   end,
   on_use = function(self, event, target, player, data)
     data.damage = data.damage + 1
