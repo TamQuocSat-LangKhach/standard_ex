@@ -191,6 +191,89 @@ Fk:loadTranslationTable{
   ["$ex__luoyi2"] = "废话少说，放马过来吧！",
   ["~ex__xuchu"] = "丞相，末将尽力了！",
 }
+
+local ex__zhenji = General(extension, "ex__zhenji", "wei", 3, 3, General.Female)
+
+local ex__luoshen = fk.CreateTriggerSkill{
+  name = "ex__luoshen",
+  anim_type = "drawcard",
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self.name) and
+      player.phase == Player.Start
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    while true do
+      local judge = {
+        who = player,
+        reason = self.name,
+        pattern = ".|A~K|spade,club",
+      }
+      room:judge(judge)
+      if judge.card.color ~= Card.Black then
+        break
+      end
+
+      if not room:askForSkillInvoke(player, self.name) then
+        break
+      end
+    end
+  end,
+}
+local ex__luoshen_obtain = fk.CreateTriggerSkill{
+  name = "#ex__luoshen_obtain",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.FinishJudge},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill("ex__luoshen") and
+      data.reason == "ex__luoshen" and data.card.color == Card.Black
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:setCardMark(data.card, "@@ex__luoshen-turn", 1)
+    room:obtainCard(player.id, data.card)
+  end,
+}
+local ex__luoshen_max = fk.CreateMaxCardsSkill{
+  name = "#ex__luoshen_max",
+  exclude_from = function(self, player, card)
+    return player:hasSkill("ex__luoshen") and card:getMark("@@ex__luoshen-turn") > 0
+  end,
+}
+local ex__luoshen_maxcards_audio = fk.CreateTriggerSkill{
+  name = "#ex__luoshen_maxcards_audio",
+  refresh_events = {fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    return player == target and player:hasSkill("ex__luoshen") and player.phase == Player.Discard
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:broadcastSkillInvoke("ex__luoshen")
+    player.room:notifySkillInvoked(player, "ex__luoshen", "special")
+  end,
+}
+ex__luoshen:addRelatedSkill(ex__luoshen_obtain)
+ex__luoshen:addRelatedSkill(ex__luoshen_max)
+ex__luoshen:addRelatedSkill(ex__luoshen_maxcards_audio)
+
+ex__zhenji:addSkill(ex__luoshen)
+ex__zhenji:addSkill("qingguo")
+
+Fk:loadTranslationTable{
+  ["ex__zhenji"] = "界甄姬",
+  ["ex__luoshen"] = "洛神",
+  [":ex__luoshen"] = "准备阶段开始时，你可以进行判定，当黑色判定牌生效后，你获得之并可以重复此流程。你以此法获得的牌在本回合不计入手牌上限。",
+
+  ["@@ex__luoshen-turn"] = "洛神",
+
+  ["$ex__luoshen1"] = "屏翳收风，川后静波。",
+  ["$ex__luoshen2"] = "冯夷鸣鼓，女娲清歌。",
+  ["$ex__qingguo1"] = "肩若削成，腰如约素。",
+  ["$ex__qingguo2"] = "延颈秀项，皓质呈露。",
+  ["~ex__zhenji"] = "出亦复何苦，入亦复何愁。",
+}
+
 --郭嘉
 local lidian = General(extension, "lidian", "wei", 3)
 local xunxun = fk.CreateTriggerSkill{
@@ -491,6 +574,52 @@ Fk:loadTranslationTable{
   ["$ex__fanjian2"] = "抉择吧！ 在苦与痛的地狱中！",
   ["~ex__zhouyu"] = "既生瑜，何生亮！……既生瑜，何生亮……！",
 }
+--local ex__luxun = General(extension, "ex__luxun", "wu", 3)
+local ex__qianxun = fk.CreateTriggerSkill{
+  name = "ex__qianxun",
+  events = {fk.CardEffecting}, --延时锦囊不过这个事件！
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self.name) and data.to == player.id and (not target or target ~= player) and (data.card.sub_type == Card.SubtypeDelayedTrick or data.card:isCommonTrick()) and #TargetGroup:getRealTargets(data.tos) == 1 and not player:isKongcheng()
+  end,
+  on_use = function(self, event, target, player, data)
+    player:addToPile("ex__qianxun", player:getCardIds("h"), false, self.name)
+  end,
+}
+local ex__qianxun_delay = fk.CreateTriggerSkill{
+  name = "#ex__qianxun_delay",
+  mute = true,
+  events = {fk.EventPhaseChanging},
+  frequency = Skill.Compulsory,
+  can_trigger = function(self, event, target, player, data)
+    return data.to == Player.NotActive and #player:getPile("ex__qianxun") > 0
+  end,
+  on_use = function(self, event, target, player, data)
+    local dummy = Fk:cloneCard("zixing")
+    dummy:addSubcards(player:getPile("ex__qianxun"))
+    local room = player.room
+    room:obtainCard(player.id, dummy, false)
+  end,
+}
+ex__qianxun:addRelatedSkill(ex__qianxun_delay)
+
+--ex__luxun:addSkill(ex__qianxun)
+
+Fk:loadTranslationTable{
+  ["ex__luxun"] = "界陆逊",
+  ["ex__qianxun"] = "谦逊",
+  [":ex__qianxun"] = "当一张延时锦囊牌或其他角色使用的普通锦囊牌对你生效时，若你是此牌唯一目标，则你可以将所有手牌扣置于武将牌上，然后此回合结束时，你获得这些牌。",
+  ["ex__lianying"] = "连营",
+  [":ex__lianying"] = "当你失去手牌后，若你没有手牌，则你可以令至多X名角色各摸一张牌（X为你此次失去的手牌数）。",
+
+  ["#ex__qianxun_delay"] = "谦逊",
+
+  ["$ex__qianxun1"] = "谦谦君子，温润如玉。",
+  ["$ex__qianxun2"] = "满招损，谦受益。",
+  ["$ex__lianying1"] = "生生不息，源源不绝。",
+  ["$ex__lianying2"] = "失之淡然，得之坦然。",
+  ["~ex__luxun"] = "我的未竟之业……",
+}
+
 local sunshangxiang = General(extension, "ex__sunshangxiang", "wu", 3, 3, General.Female)
 local ex__jieyin = fk.CreateActiveSkill{
   name = "ex__jieyin",
@@ -604,7 +733,6 @@ Fk:loadTranslationTable{
   [":ex__guose"] = "出牌阶段限一次，你可以选择一项：1.将一张<font color='red'>♦</font>牌当【乐不思蜀】使用；"..
   "2.弃置一张<font color='red'>♦</font>牌并弃置场上的一张【乐不思蜀】。选择完成后，你摸一张牌。",
 }
---陆逊
 
 --华佗
 local huatuo = General(extension, "ex__huatuo", "qun", 3)
@@ -986,6 +1114,91 @@ Fk:loadTranslationTable{
   ["~std__panfeng"] = "潘凤又被华雄斩了……",	
 }
 --蜀国
+
+local ex__liubei = General(extension, "ex__liubei", "shu", 4)
+local ex__rende = fk.CreateActiveSkill{
+  name = "ex__rende",
+  anim_type = "support",
+  card_filter = function(self, to_select, selected)
+    return Fk:currentRoom():getCardArea(to_select) ~= Card.PlayerEquip
+  end,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_ex__rende-phase") == 0
+  end,
+  target_num = 1,
+  min_card_num = 1,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+    local player = room:getPlayerById(effect.from)
+    local cards = effect.cards
+    local marks = player:getMark("_rende_cards-phase")
+    room:moveCardTo(cards, Player.Hand, target, fk.ReasonGive, self.name, nil, false)
+    room:addPlayerMark(player, "_rende_cards-phase", #cards)
+    room:addPlayerMark(target, "_ex__rende-phase", 1)
+    if marks < 2 and marks + #cards >= 2 then
+      local success, dat = room:askForUseViewAsSkill(player, "ex__rende_vs", "#ex__rende-ask", true)
+      if success then
+        local card = Fk.skills["ex__rende_vs"]:viewAs(dat.cards)
+        local use = {
+          from = player.id,
+          tos = table.map(dat.targets, function(e) return {e} end),
+          card = card,
+        }
+        room:useCard(use)
+      end
+    end
+  end,
+}
+local ex__rende_vs = fk.CreateViewAsSkill{
+  name = "ex__rende_vs",
+  card_num = 0,
+  card_filter = function(self, to_select, selected)
+    return false
+  end,
+  pattern = "^nullification|.|.|.|.|basic",
+  interaction = function(self)
+    local allCardNames = {}
+    for _, id in ipairs(Fk:getAllCardIds()) do
+      local card = Fk:getCardById(id)
+      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived and card.skill:canUse(Self) and not Self:prohibitUse(card) then
+        table.insert(allCardNames, card.name)
+      end
+    end
+    return UI.ComboBox { choices = allCardNames }
+  end,
+  view_as = function(self, cards)
+    local choice = self.interaction.data
+    if not choice then return end
+    local c = Fk:cloneCard(choice)
+    c:addSubcards(cards)
+    c.skillName = self.name
+    return c
+  end,
+  enabled_at_play = function(self, player)
+    return false
+  end,
+  enabled_at_response = function(self, player)
+    return false
+  end,
+}
+Fk:addSkill(ex__rende_vs)
+
+ex__liubei:addSkill(ex__rende)
+ex__liubei:addSkill("jijiang")
+
+Fk:loadTranslationTable{
+  ["ex__liubei"] = "界刘备",
+  ["ex__rende"] = "仁德",
+  [":ex__rende"] = "出牌阶段每名角色限一次，你可以将任意张手牌交给一名其他角色，每阶段你以此法给出第二张牌时，你可以视为使用一张基本牌。",
+  
+  ["#ex__rende-ask"] = "仁德：你可视为使用一张基本牌",
+  ["#ex__rende-vs"] = "仁德：视为使用【%arg】",
+
+  ["$ex__rende1"] = "同心同德，救困扶危！",
+  ["$ex__rende2"] = "施仁布泽，乃我大汉立国之本！",
+  ["~ex__liubei"] = "汉室未兴，祖宗未耀，朕实不忍此时西去……",
+}
+
 local ex__tieji = fk.CreateTriggerSkill{
   name = "ex__tieji",
   anim_type = "offensive",
@@ -1022,7 +1235,7 @@ machao:addSkill(ex__tieji)
 Fk:loadTranslationTable{
   ["ex__machao"] = "界马超",
   ["ex__tieji"] = "铁骑",
-  [":ex__tieji"] = "当你使用【杀】指定目标后，你可以令其本回合内非锁定技失效，然后进行一次判定，其需弃置一张花色与判定结果花色相同的牌，否则其无法响应此杀。",
+  [":ex__tieji"] = "当你使用【杀】指定目标后，你可以令其本回合内非锁定技失效，然后进行一次判定，其需弃置一张花色与判定结果花色相同的牌，否则其无法响应此【杀】。",
   ["ex__tieji_invalidity"] = "铁骑",
   ["@@tieji-turn"] = "铁骑",
   ["#ex__tieji-discard"] = "铁骑：你需弃置一张%arg牌，否则无法响应此杀。",
@@ -1199,11 +1412,11 @@ local ex__yijue = fk.CreateActiveSkill{
       if to:isWounded() then
         if room:askForSkillInvoke(from, self.name, nil, "#yijue-recover::"..to.id) then
           room:recover({
-            who = to.id,
+            who = to,
             num = 1,
-            recoverBy = to.id,
-            skillName = self.name
-          }) 
+            recoverBy = from,
+            skillName = self.name,
+          })
         end
       end
     end
@@ -1377,19 +1590,78 @@ local ex__jizhi_maxcards = fk.CreateMaxCardsSkill{
     end
   end,
 }
+local ex__qicai = fk.CreateTargetModSkill{
+  name = "ex__qicai",
+  frequency = Skill.Compulsory,
+  bypass_distances = function(self, player, skill, card)
+    return player:hasSkill(self.name) and card and card.type == Card.TypeTrick
+  end,
+}
+local ex__qicai_move = fk.CreateTriggerSkill{
+  name = "#ex__qicai_move",
+  events = {fk.BeforeCardsMove},
+  frequency = Skill.Compulsory,
+  anim_type = "defensive",
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self.name) or not (player:getEquipment(Card.SubtypeArmor) or player:getEquipment(Card.SubtypeTreasure)) then return false end
+    for _, move in ipairs(data) do
+      if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+        for _, info in ipairs(move.moveInfo) do
+          if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeArmor, Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
+            return true
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local ids = {}
+    for _, move in ipairs(data) do
+      if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+        local move_info = {}
+        for _, info in ipairs(move.moveInfo) do
+          local id = info.cardId
+          if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeArmor, Card.SubtypeTreasure}, Fk:getCardById(id).sub_type) then
+            table.insert(ids, id)
+          else
+            table.insert(move_info, info)
+          end
+        end
+        if #ids > 0 then
+          move.moveInfo = move_info
+        end
+      end
+    end
+    if #ids > 0 then
+      player.room:sendLog{
+        type = "#cancelDismantle",
+        card = ids,
+        arg = self.name,
+      }
+    end
+  end,
+}
+ex__qicai:addRelatedSkill(ex__qicai_move)
 local huangyueying = General(extension, "ex__huangyueying", "shu", 3, 3, General.Female)
 ex__jizhi:addRelatedSkill(ex__jizhi_maxcards)
 huangyueying:addSkill(ex__jizhi)
-huangyueying:addSkill("qicai")
+huangyueying:addSkill(ex__qicai)
 
 Fk:loadTranslationTable{
   ["ex__huangyueying"] = "界黄月英",
   ["ex__jizhi"] = "集智",
   [":ex__jizhi"] = "当你使用锦囊牌时，你可以摸一张牌。若此牌为基本牌且此时是你的回合内，则你可以弃置之，然后令本回合手牌上限+1。",
   ["ex__qicai"] = "奇才",
-  [":ex__qicai"] = "锁定技，①你使用锦囊牌无距离限制;②你装备区的宝物牌和防具牌不能被其他角色弃置",
+  [":ex__qicai"] = "锁定技，①你使用锦囊牌无距离限制；②你装备区的宝物牌和防具牌不能被其他角色弃置。",
   ["@jizhi-turn"] = "集智",
+
+  ["#ex__qicai_move"] = "奇才",
+  ["#cancelDismantle"] = "由于“%arg”的效果，%card 的弃置被取消",
   ["#jizhi-invoke"] = "集智：是否弃置%arg，令你本回合的手牌上限+1？",
+
+  ["$ex__jizhi1"] = "得上通，智集心。",
+  ["$ex__jizhi2"] = "集万千才智，致巧趣鲜用。",
+  ["~ex__huangyueying"] = "我的面容，有吓到你吗？",
 }
 local ex__guanxing = fk.CreateTriggerSkill{
   name = "ex__guanxing",
