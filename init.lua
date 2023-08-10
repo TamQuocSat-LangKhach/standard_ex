@@ -602,6 +602,7 @@ local ex__qianxun_delay = fk.CreateTriggerSkill{
 }
 ex__qianxun:addRelatedSkill(ex__qianxun_delay)
 
+Fk:addSkill(ex__qianxun)
 --ex__luxun:addSkill(ex__qianxun)
 
 Fk:loadTranslationTable{
@@ -1818,7 +1819,7 @@ local jijie = fk.CreateActiveSkill{
     room:delay(2000)
     room:closeAG(player)
     local target = room:askForChoosePlayers(player, table.map(room.alive_players, function(p) return p.id end), 1, 1, "#jijie-give:::" .. Fk:getCardById(cids[1]):toLogString(), self.name, false)[1]
-    room:moveCardTo(cids, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, false)
+    room:moveCardTo(cids, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, false, player.id)
   end,
 }
 
@@ -1833,7 +1834,7 @@ local jiyuan = fk.CreateTriggerSkill{
     else
       for _, move in ipairs(data) do
         local to = move.to and player.room:getPlayerById(move.to) or nil 
-        if to and to ~= player and (move.from == player.id or (move.skillName and player:hasSkill(move.skillName))) and (move.toArea == Card.PlayerHand or move.toArea == Card.PlayerEquip) and move.moveReason == fk.ReasonGive then --proposer 寄！
+        if to and to ~= player and (move.from == player.id or move.proposer == player.id or (move.skillName and move.skillName ~= "kill" and player:hasSkill(move.skillName))) and (move.toArea == Card.PlayerHand or move.toArea == Card.PlayerEquip) and move.moveReason == fk.ReasonGive then --proposer 寄！
           return true --开摆
         end
       end
@@ -1848,7 +1849,7 @@ local jiyuan = fk.CreateTriggerSkill{
       for _, move in ipairs(data) do
         local to = move.to and room:getPlayerById(move.to) or nil
         if to and to ~= player and (move.from == player.id or (move.skillName and player:hasSkill(move.skillName))) and (move.toArea == Card.PlayerHand or move.toArea == Card.PlayerEquip) and move.moveReason == fk.ReasonGive then
-          table.insert(targets, move.to)
+          table.insertIfNeed(targets, move.to)
         end
       end
       room:sortPlayersByAction(targets)
