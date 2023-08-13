@@ -1161,7 +1161,7 @@ local ex__rende_vs = fk.CreateViewAsSkill{
     local allCardNames = {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
-      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived and card.skill:canUse(Self) and not Self:prohibitUse(card) then
+      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived and card.skill:canUse(Self, card) and not Self:prohibitUse(card) then
         table.insert(allCardNames, card.name)
       end
     end
@@ -1262,7 +1262,7 @@ local ex__longdan = fk.CreateViewAsSkill{
     else
       return false
     end
-    return (Fk.currentResponsePattern == nil and c.skill:canUse(Self)) or (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(c))
+    return (Fk.currentResponsePattern == nil and c.skill:canUse(Self, c)) or (Fk.currentResponsePattern and Exppattern:Parse(Fk.currentResponsePattern):match(c))
   end,
   view_as = function(self, cards)
     if #cards ~= 1 then
