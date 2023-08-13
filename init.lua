@@ -1834,8 +1834,8 @@ local jiyuan = fk.CreateTriggerSkill{
     else
       for _, move in ipairs(data) do
         local to = move.to and player.room:getPlayerById(move.to) or nil 
-        if to and to ~= player and (move.from == player.id or move.proposer == player.id or (move.skillName and move.skillName ~= "kill" and player:hasSkill(move.skillName))) and (move.toArea == Card.PlayerHand or move.toArea == Card.PlayerEquip) and move.moveReason == fk.ReasonGive then --proposer 寄！
-          return true --开摆
+        if to and to ~= player and move.proposer == player.id and move.moveReason == fk.ReasonGive then
+          return true
         end
       end
     end
