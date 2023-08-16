@@ -83,6 +83,47 @@ Fk:loadTranslationTable{
 }
 
 --夏侯惇
+local ex__ganglie = fk.CreateTriggerSkill{
+  name = "ex__ganglie",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  on_trigger = function(self, event, target, player, data)
+    self.cancel_cost = false
+    for i = 1, data.damage do
+      if self.cancel_cost then break end
+      self:doCost(event, target, player, data)
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local from = data.from
+    if from and not from.dead then room:doIndicate(player.id, {from.id}) end
+    local judge = {
+      who = player,
+      reason = self.name,
+      pattern = ".",
+    }
+    room:judge(judge)
+    if judge.card.color == Card.Red and not from.dead then
+      room:damage{
+        from = player,
+        to = from,
+        damage = 1,
+        skillName = self.name,
+      }
+    elseif judge.card.color == Card.Black and not from:isNude() then
+      local cid = room:askForCardChosen(player, from, "he", self.name)
+      room:throwCard({cid}, self.name, from, player)
+    end
+  end
+}
+Fk:addSkill(ex__ganglie)
+
+Fk:loadTranslationTable{
+  ["ex__xiahoudun"] = "界夏侯惇",
+  ["ex__ganglie"] = "刚烈",
+  [":ex__ganglie"] = "当你受到1点伤害后，你可判定，若结果为：红色，你对来源造成1点伤害；黑色，你弃置来源的一张牌。",
+}
 
 --张辽
 local zhangliao = General(extension, "ex__zhangliao", "wei", 4)
