@@ -1190,9 +1190,9 @@ local ex__rende = fk.CreateActiveSkill{
     room:addPlayerMark(player, "_rende_cards-phase", #cards)
     room:addPlayerMark(target, "_ex__rende-phase", 1)
     if marks < 2 and marks + #cards >= 2 then
-      local success, dat = room:askForUseViewAsSkill(player, "ex__rende_vs", "#ex__rende-ask", true)
+      local success, dat = room:askForUseViewAsSkill(player, "#ex__rende_vs", "#ex__rende-ask", true)
       if success then
-        local card = Fk.skills["ex__rende_vs"]:viewAs(dat.cards)
+        local card = Fk.skills["#ex__rende_vs"]:viewAs(dat.cards)
         local use = {
           from = player.id,
           tos = table.map(dat.targets, function(e) return {e} end),
@@ -1204,7 +1204,7 @@ local ex__rende = fk.CreateActiveSkill{
   end,
 }
 local ex__rende_vs = fk.CreateViewAsSkill{
-  name = "ex__rende_vs",
+  name = "#ex__rende_vs",
   card_num = 0,
   card_filter = function(self, to_select, selected)
     return false
@@ -1214,11 +1214,18 @@ local ex__rende_vs = fk.CreateViewAsSkill{
     local allCardNames = {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
-      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived and card.skill:canUse(Self, card) and not Self:prohibitUse(card) then
+      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived then
         table.insert(allCardNames, card.name)
       end
     end
-    return UI.ComboBox { choices = allCardNames }
+    local cardNames = {}
+    for _, name in ipairs(allCardNames) do
+      local card = Fk:cloneCard(name)
+      if Self:canUse(card) and not Self:prohibitUse(card) then
+        table.insert(cardNames, name)
+      end
+    end
+    return UI.ComboBox { choices = cardNames , all_choices = allCardNames}
   end,
   view_as = function(self, cards)
     local choice = self.interaction.data
@@ -1235,7 +1242,7 @@ local ex__rende_vs = fk.CreateViewAsSkill{
     return false
   end,
 }
-Fk:addSkill(ex__rende_vs)
+ex__rende:addRelatedSkill(ex__rende_vs)
 
 ex__liubei:addSkill(ex__rende)
 ex__liubei:addSkill("jijiang")
@@ -1247,6 +1254,7 @@ Fk:loadTranslationTable{
   
   ["#ex__rende-ask"] = "仁德：你可视为使用一张基本牌",
   ["#ex__rende-vs"] = "仁德：视为使用【%arg】",
+  ["#ex__rende_vs"] = "仁德",
 
   ["$ex__rende1"] = "同心同德，救困扶危！",
   ["$ex__rende2"] = "施仁布泽，乃我大汉立国之本！",
