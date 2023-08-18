@@ -571,6 +571,15 @@ local ex__yingzi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     data.n = data.n + 1
   end,
+
+  refresh_events = {fk.EventPhaseStart},
+  can_refresh = function(self, event, target, player, data)
+    return player == target and player:hasSkill(self.name) and player.phase == Player.Discard
+  end,
+  on_refresh = function(self, event, target, player, data)
+    player.room:broadcastSkillInvoke(self.name)
+    player.room:notifySkillInvoked(player, self.name, "special")
+  end,
 }
 local ex__yingzi_maxcards = fk.CreateMaxCardsSkill{
   name = "#ex__yingzi_maxcards",
@@ -1211,18 +1220,16 @@ local ex__rende_vs = fk.CreateViewAsSkill{
   end,
   pattern = "^nullification|.|.|.|.|basic",
   interaction = function(self)
-    local allCardNames = {}
+    local allCardNames, cardNames = {}, {}
     for _, id in ipairs(Fk:getAllCardIds()) do
       local card = Fk:getCardById(id)
-      if not table.contains(allCardNames, card.name) and card.type == Card.TypeBasic and not card.is_derived then
-        table.insert(allCardNames, card.name)
-      end
-    end
-    local cardNames = {}
-    for _, name in ipairs(allCardNames) do
-      local card = Fk:cloneCard(name)
-      if Self:canUse(card) and not Self:prohibitUse(card) then
-        table.insert(cardNames, name)
+      local name = card.name
+      if not table.contains(allCardNames, name) and card.type == Card.TypeBasic and not card.is_derived then
+        table.insert(allCardNames, name)
+        local card = Fk:cloneCard(name)
+        if Self:canUse(card) and not Self:prohibitUse(card) then
+          table.insert(cardNames, name)
+        end
       end
     end
     return UI.ComboBox { choices = cardNames , all_choices = allCardNames}
