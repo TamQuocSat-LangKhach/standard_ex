@@ -1823,25 +1823,40 @@ local jianyan = fk.CreateActiveSkill{
     return UI.ComboBox {choices = {"black", "red", "basic", "trick", "equip"} }
   end,
   on_use = function(self, room, effect)
-    local cardType = self.interaction.data
-    if not cardType then return end
-    local color = (cardType == "black" or cardType == "red")
+    local pattern = self.interaction.data
     local player = room:getPlayerById(effect.from)
     local card
+    local cards = {}
+    local _pattern
+    if pattern == "black" then
+      _pattern = ".|.|spade,club"
+    elseif pattern == "red" then
+      _pattern = ".|.|heart,diamond"
+    else
+      _pattern = ".|.|.|.|.|" .. pattern
+    end
+    if #room:getCardsFromPileByRule(_pattern, 1, "allPiles") == 0 then return false end
     while true do
       local id = room:getNCards(1)[1]
       room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name)
-      room:delay(500)
+      room:delay(300)
       local c = Fk:getCardById(id)
-      if color and c:getColorString() == cardType or c:getTypeString() == cardType then
+      if c:getColorString() == pattern or c:getTypeString() == pattern then
         card = c
         break
+      else
+        table.insert(cards, id)
       end
     end
     local availableTargets = table.map(table.filter(room.alive_players, function(p) return p.gender == General.Male end), function(p) return p.id end)
-    if #availableTargets == 0 then return end
-    local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#jianyan-give:::" .. card:toLogString(), self.name, false)[1]
-    room:moveCardTo(card.id, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, true)
+    if #availableTargets == 0 then
+      table.insert(cards, card.id)
+    else
+      local target = room:askForChoosePlayers(player, availableTargets, 1, 1, "#jianyan-give:::" .. card:toLogString(), self.name, false)[1]
+      room:moveCardTo(card.id, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, true, player.id)
+    end
+    cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
+    room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
   end,
 }
 
