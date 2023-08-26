@@ -216,7 +216,7 @@ local ex__luoyi_trigger = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke("ex__luoyi")
+    player:broadcastSkillInvoke("ex__luoyi")
     room:notifySkillInvoked(player, "ex__luoyi")
     data.damage = data.damage + 1
   end,
@@ -302,7 +302,7 @@ local ex__luoshen_maxcards_audio = fk.CreateTriggerSkill{
     return player == target and player:hasSkill("ex__luoshen") and player.phase == Player.Discard
   end,
   on_refresh = function(self, event, target, player, data)
-    player.room:broadcastSkillInvoke("ex__luoshen")
+    player:broadcastSkillInvoke("ex__luoshen")
     player.room:notifySkillInvoked(player, "ex__luoshen", "special")
   end,
 }
@@ -577,7 +577,7 @@ local ex__yingzi = fk.CreateTriggerSkill{
     return player == target and player:hasSkill(self.name) and player.phase == Player.Discard
   end,
   on_refresh = function(self, event, target, player, data)
-    player.room:broadcastSkillInvoke(self.name)
+    player:broadcastSkillInvoke(self.name)
     player.room:notifySkillInvoked(player, self.name, "special")
   end,
 }
@@ -1048,7 +1048,7 @@ local tongjiAudio = fk.CreateTriggerSkill{
   on_refresh = function(self, event, target, player, data)
     local room = player.room
     room:notifySkillInvoked(player, tongji.name, "negative")
-    room:broadcastSkillInvoke(tongji.name)
+    player:broadcastSkillInvoke(tongji.name)
   end,
 }
 tongji:addRelatedSkill(tongjiAudio)
@@ -1156,7 +1156,7 @@ local std__kuangfu = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:broadcastSkillInvoke(self.name)
+    player:broadcastSkillInvoke(self.name)
     if data.to.hp < player.hp then
       room:notifySkillInvoked(player, self.name, "drawcard")
       player:drawCards(2, self.name)
@@ -1544,7 +1544,7 @@ local ex__paoxiaoAudio = fk.CreateTriggerSkill{
       player:usedCardTimes("slash") > 1
   end,
   on_refresh = function(self, event, target, player, data)
-    player.room:broadcastSkillInvoke("ex__paoxiao")
+    player:broadcastSkillInvoke("ex__paoxiao")
     player.room:doAnimate("InvokeSkill", {
       name = "ex__paoxiao",
       player = player.id,
