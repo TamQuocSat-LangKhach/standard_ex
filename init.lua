@@ -41,7 +41,7 @@ local ex__guicai = fk.CreateTriggerSkill{
     return player:hasSkill(self.name) and not player:isNude()
   end,
   on_cost = function(self, event, target, player, data)
-    local card = player.room:askForResponse(player, self.name, ".|.|.|hand,equip|.|", "#guicai-ask::" .. target.id, true)
+    local card = player.room:askForResponse(player, self.name, ".|.|.|hand,equip|.|", "#ex__guicai-ask::" .. target.id .. ":" .. data.reason, true)
     if card ~= nil then
       self.cost_data = card
       return true
@@ -77,15 +77,17 @@ simayi:addSkill(ex__fankui)
 Fk:loadTranslationTable{
   ["ex__simayi"] = "界司马懿",
   ["ex__guicai"] = "鬼才",
-  [":ex__guicai"] = "当判定牌生效之前，你可以打出一张牌代替之。",
+  [":ex__guicai"] = "当判定牌生效之前，你可打出一张牌代替之。",
   ["ex__fankui"] = "反馈",
-  [":ex__fankui"] = "当你受到1点伤害后，你可以从伤害来源处获得一张牌。",
+  [":ex__fankui"] = "当你受到1点伤害后，你可从伤害来源处获得一张牌。",
+
+  ["#ex__guicai-ask"] = "鬼才：你可打出一张牌代替 %dest 的 %arg 判定",
 
   ["$ex__guicai1"] = "天命难违？哈哈哈哈哈……",
   ["$ex__guicai2"] = "才通天地，逆天改命！",
-  ["$ex__fankui1"] = "哼！自作孽不可活！",
-  ["$ex__fankui2"] = "哼！正中下怀！",
-  ["~ex__simayi"] = "我的气数就到这里了么？",
+  ["$ex__fankui1"] = "哼，自作孽不可活！",
+  ["$ex__fankui2"] = "哼，正中下怀！",
+  ["~ex__simayi"] = "我的气数，就到这里了么？",
 }
 
 --夏侯惇
@@ -574,11 +576,11 @@ local ex__yingzi = fk.CreateTriggerSkill{
 
   refresh_events = {fk.EventPhaseStart},
   can_refresh = function(self, event, target, player, data)
-    return player == target and player:hasSkill(self.name) and player.phase == Player.Discard
+    return player == target and player:hasSkill(self.name) and player.phase == Player.Discard and not player:isFakeSkill(self.name)
   end,
   on_refresh = function(self, event, target, player, data)
     player:broadcastSkillInvoke(self.name)
-    player.room:notifySkillInvoked(player, self.name, "special")
+    player.room:notifySkillInvoked(player, self.name, "defensive")
   end,
 }
 local ex__yingzi_maxcards = fk.CreateMaxCardsSkill{
