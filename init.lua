@@ -457,6 +457,11 @@ Fk:loadTranslationTable{
   ["fenwei"] = "奋威",
   [":fenwei"] = "限定技，当一张锦囊牌指定多个目标后，你可令此牌对其中任意个目标无效。",
   ["#fenwei-choose"] = "奋威：你可以令此%arg对任意个目标无效",
+  ["$qixi_ex__ganning1"] = "弟兄们，准备动手！",
+  ["$qixi_ex__ganning2"] = "你用不了这么多了！",
+  ["$fenwei1"] = "奋勇当先，威名远扬！",
+  ["$fenwei2"] = "哼！敢欺我东吴无人。",
+  ["~ex__ganning"] = "别管我，继续上！",
 }
 
 local lvmeng = General(extension, "ex__lvmeng", "wu", 4)
