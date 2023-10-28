@@ -112,14 +112,14 @@ local ex__ganglie = fk.CreateTriggerSkill{
       pattern = ".",
     }
     room:judge(judge)
-    if judge.card.color == Card.Red and not from.dead then
+    if judge.card.color == Card.Red and from and not from.dead then
       room:damage{
         from = player,
         to = from,
         damage = 1,
         skillName = self.name,
       }
-    elseif judge.card.color == Card.Black and not from:isNude() then
+    elseif judge.card.color == Card.Black and from and not from:isNude() then
       local cid = room:askForCardChosen(player, from, "he", self.name)
       room:throwCard({cid}, self.name, from, player)
     end
