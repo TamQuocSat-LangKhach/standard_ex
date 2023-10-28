@@ -1914,6 +1914,7 @@ local jianyan = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local pattern = self.interaction.data
+    if not pattern then pattern = "red" end -- for AI
     local player = room:getPlayerById(effect.from)
     local card
     local cards = {}
