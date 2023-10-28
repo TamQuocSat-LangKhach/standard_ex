@@ -247,6 +247,89 @@ Fk:loadTranslationTable{
   ["~ex__xuchu"] = "丞相，末将尽力了！",
 }
 
+
+local ex__guojia = General(extension, "ex__guojia", "wei", 3)
+ex__guojia:addSkill("tiandu")
+local ex__yiji_active = fk.CreateActiveSkill{
+  name = "ex__yiji_active",
+  mute = true,
+  min_card_num = 1,
+  target_num = 1,
+  card_filter = function(self, to_select, selected, targets)
+    return Fk:currentRoom():getCardArea(to_select) ~= Player.Equip and #selected < Self:getMark("ex__yiji") and Fk:getCardById(to_select):getMark("ex__yiji") == 0
+  end,
+  target_filter = function(self, to_select, selected)
+    return to_select ~= Self.id and #selected == 0
+  end,
+  on_use = function(self, room, effect)
+    for _, id in ipairs(effect.cards) do
+      room:setCardMark(Fk:getCardById(id), "ex__yiji", 1)
+    end
+    room:removePlayerMark(room:getPlayerById(effect.from), "ex__yiji", #effect.cards)
+  end,
+}
+Fk:addSkill(ex__yiji_active)
+local ex__yiji = fk.CreateTriggerSkill{
+  name = "ex__yiji",
+  anim_type = "masochism",
+  events = {fk.Damaged},
+  on_trigger = function(self, event, target, player, data)
+    self.cancel_cost = false
+    for _ = 1, data.damage do
+      if player.dead or self.cancel_cost then return end
+      self:doCost(event, target, player, data)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    if player.room:askForSkillInvoke(target, self.name, data) then return true end
+    self.cancel_cost = true
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    player:drawCards(2, self.name)
+    if player.dead or player:isKongcheng() then return end
+    room:setPlayerMark(player, self.name, 2)
+    local moveInfos = {}
+    local cleaner = {}
+    while player:getMark(self.name) > 0 do
+      local _, ret = room:askForUseActiveSkill(player, "ex__yiji_active", "#ex__yiji-give:::"..player:getMark(self.name), true, nil, true)
+      if ret then
+        table.insertTable(cleaner,ret.cards)
+        table.insert(moveInfos, {
+          ids = ret.cards,
+          from = player.id,
+          fromArea = Card.PlayerHand,
+          to = ret.targets[1],
+          toArea = Card.PlayerHand,
+          moveReason = fk.ReasonGive,
+          proposer = player.id,
+          skillName = self.name,
+        })
+      else
+        break
+      end
+    end
+    for _, id in ipairs(cleaner) do
+      room:setCardMark(Fk:getCardById(id), self.name, 0)
+    end
+    if #moveInfos > 0 then
+      room:moveCards(table.unpack(moveInfos))
+    end
+  end
+}
+ex__guojia:addSkill(ex__yiji)
+Fk:loadTranslationTable{
+  ["ex__guojia"] = "界郭嘉",
+  ["ex__yiji"] = "遗计",
+  [":ex__yiji"] = "当你受到1点伤害后，你可以摸两张牌，然后你可以将至多两张手牌交给一至两名其他角色。",
+  ["#ex__yiji-give"] = "遗计：将至多%arg张手牌分配给其他角色",
+  ["$tiandu_ex__guojia1"] = "那，就这样吧。",
+  ["$tiandu_ex__guojia2"] = "天意如此。",
+  ["$ex__yiji1"] = "锦囊妙策，终定社稷。",
+  ["$ex__yiji2"] = "依此计行，辽东可定。",
+  ["~ex__guojia"] = "咳，咳咳咳。",
+}
+
 local ex__zhenji = General(extension, "ex__zhenji", "wei", 3, 3, General.Female)
 
 local ex__luoshen = fk.CreateTriggerSkill{
