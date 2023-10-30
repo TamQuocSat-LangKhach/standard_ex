@@ -91,6 +91,7 @@ Fk:loadTranslationTable{
 }
 
 --夏侯惇
+local xiahoudun = General(extension, "ex__xiahoudun", "wei", 4)
 local ex__ganglie = fk.CreateTriggerSkill{
   name = "ex__ganglie",
   anim_type = "masochism",
@@ -125,14 +126,70 @@ local ex__ganglie = fk.CreateTriggerSkill{
     end
   end
 }
-Fk:addSkill(ex__ganglie)
 
+local ex__qingjian = fk.CreateTriggerSkill{
+  name = "ex__qingjian",
+  anim_type = "support",
+   events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:hasSkill(self.name) and player:usedSkillTimes("#ex__qingjian_active", Player.HistoryTurn) == 0 then
+      if event == fk.AfterCardsMove then
+        for _, move in ipairs(data) do
+             if move.to == player.id and move.toArea == Player.Hand and move.skillName ~= self.name and player.phase ~= Player.Draw then
+                 return true
+             end
+        end
+      end
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    player.room:askForUseActiveSkill(player, "#ex__qingjian_active", "#ex__qingjian-invoke", true)
+  end,
+}
+--贪污✓ 清俭X
+local ex__qingjian_active = fk.CreateActiveSkill{
+  name = "#ex__qingjian_active",
+  anim_type = "support",
+  max_card_num = function ()
+    return #Self:getCardIds{Player.Hand, Player.Equip}
+  end,
+  min_card_num = 1,
+  target_num = 1,
+  can_use = function(self, player)
+    return not player:isNude()
+  end,
+  card_filter = Util.TrueFunc,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0
+  end,
+  on_use = function(self, room, effect)
+    local target = room:getPlayerById(effect.tos[1])
+     local types = {}
+    for _, id in ipairs(effect.cards) do
+      table.insertIfNeed(types, Fk:getCardById(id).type)
+    end
+    local dummy = Fk:cloneCard("dilu")
+    dummy:addSubcards(effect.cards)
+    room:obtainCard(target, dummy, false, fk.ReasonGive)
+    room:addPlayerMark(room.current, MarkEnum.AddMaxCardsInTurn, #types)
+  end,
+}
+
+Fk:addSkill(ex__qingjian_active)
+xiahoudun:addSkill(ex__ganglie)
+xiahoudun:addSkill(ex__qingjian)
 Fk:loadTranslationTable{
   ["ex__xiahoudun"] = "界夏侯惇",
   ["ex__ganglie"] = "刚烈",
   [":ex__ganglie"] = "当你受到1点伤害后，你可判定，若结果为：红色，你对来源造成1点伤害；黑色，你弃置来源的一张牌。",
+  ["ex__qingjian"] = "清俭",
+  [":ex__qingjian"] = "每回合限一次，当你于摸牌阶段外获得牌后，你可以展示任意张牌并交给一名其他角色。当前回合角色本回合手牌上限+X（X为你以此法展示的牌的类别数）。",
+  ["#ex__qingjian_active"] = "清俭",
+  ["#ex__qingjian-invoke"] = "清俭：你可以将任意张牌展示交给一名其他角色，并令当前回合角色手牌上限+X(X为你以此法交出牌的类别数)",
   ["$ex__ganglie1"] = "哪个敢动我！",
   ["$ex__ganglie2"] = "伤我者，十倍奉还！",
+  ["$ex__qingjian1"] = "福生于清俭，德生于卑退！",
+  ["$ex__qingjian2"] = "钱财，乃身外之物！",
 }
 
 --张辽
