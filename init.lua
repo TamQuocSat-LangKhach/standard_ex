@@ -229,7 +229,7 @@ Fk:loadTranslationTable{
   ["ex__zhangliao"] = "界张辽",
   ["ex__tuxi"] = "突袭",
   [":ex__tuxi"] = "摸牌阶段，你可以少摸任意张牌并获得等量其他角色各一张手牌。",
-  ["#ex__tuxi-choose"] = "突袭：你可以少至多%arg张牌，获得等量其他角色各一张手牌",
+  ["#ex__tuxi-choose"] = "突袭：你可以少摸至多%arg张牌，获得等量其他角色各一张手牌",
 
   ["$ex__tuxi1"] = "快马突袭，占尽先机！",
   ["$ex__tuxi2"] = "马似飞影，枪如霹雳！",
@@ -1074,7 +1074,7 @@ local ex__qicai_move = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     if not player:hasSkill(self.name) or not (player:getEquipment(Card.SubtypeArmor) or player:getEquipment(Card.SubtypeTreasure)) then return false end
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+      if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.proposer ~= player.id then
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerEquip and table.contains({Card.SubtypeArmor, Card.SubtypeTreasure}, Fk:getCardById(info.cardId).sub_type) then
             return true
@@ -1086,7 +1086,7 @@ local ex__qicai_move = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local ids = {}
     for _, move in ipairs(data) do
-      if move.from == player.id and move.moveReason == fk.ReasonDiscard then
+      if move.from == player.id and move.moveReason == fk.ReasonDiscard and move.proposer ~= player.id then
         local move_info = {}
         for _, info in ipairs(move.moveInfo) do
           local id = info.cardId
