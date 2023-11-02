@@ -133,18 +133,21 @@ local ex__qingjian = fk.CreateTriggerSkill{
   anim_type = "support",
    events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self.name) and player:usedSkillTimes("#ex__qingjian_active", Player.HistoryTurn) == 0 then
+    if player:hasSkill(self.name) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 then
       if event == fk.AfterCardsMove then
         for _, move in ipairs(data) do
              if move.to == player.id and move.toArea == Player.Hand and move.skillName ~= self.name and player.phase ~= Player.Draw then
-                 return true
+                 return not player:isNude()
              end
         end
       end
     end
   end,
   on_cost = function(self, event, target, player, data)
-    player.room:askForUseActiveSkill(player, "#ex__qingjian_active", "#ex__qingjian-invoke", true)
+    return player.room:askForSkillInvoke(player, self.name, data)
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:askForUseActiveSkill(player, "#ex__qingjian_active", "#ex__qingjian-invoke", false)
   end,
 }
 --贪污✓ 清俭X
