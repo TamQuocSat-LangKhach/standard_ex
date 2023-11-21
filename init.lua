@@ -692,6 +692,7 @@ Fk:loadTranslationTable{
   ["ex__yijue"] = "义绝",
   [":ex__yijue"] = "出牌阶段限一次，你可以弃置一张牌并令一名其他角色展示一张手牌。若此牌为黑色，则其直到回合结束不能使用或打出牌，所有非锁定技失效，你对其使用的<font color='red'>♥</font>【杀】的伤害+1。若此牌为红色，则你获得此牌，可以令其回复1点体力。",
   ["@@yijue-turn"] = "义绝",
+  ["#yijue-show"] = "义绝：请展示一张手牌",
   ["#yijue-recover"] = "义绝：是否令%dest回复1点体力？",
   ["$ex__wusheng1"] = "刀锋所向，战无不克！",
   ["$ex__wusheng2"] = "逆贼，哪里走！",
@@ -1221,6 +1222,7 @@ local jijie = fk.CreateActiveSkill{
   name = "jijie",
   anim_type = "support",
   card_num = 0,
+  card_filter = Util.FalseFunc,
   target_num = 0,
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
@@ -1228,9 +1230,7 @@ local jijie = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cids = room:getNCards(1, "bottom")
-    room:fillAG(player, cids)
-    room:delay(2000)
-    room:closeAG(player)
+    U.viewCards(player, cids, self.name)
     local target = room:askForChoosePlayers(player, table.map(room.alive_players, function(p) return p.id end), 1, 1, "#jijie-give:::" .. Fk:getCardById(cids[1]):toLogString(), self.name, false)[1]
     room:moveCardTo(cids, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, false, player.id)
   end,
