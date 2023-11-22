@@ -1946,8 +1946,7 @@ local ex__biyue = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.EventPhaseStart},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self)
-      and player.phase == Player.Finish
+    return target == player and player:hasSkill(self) and player.phase == Player.Finish
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(player:isKongcheng() and 2 or 1, self.name)
@@ -1959,7 +1958,7 @@ diaochan:addSkill(ex__biyue)
 Fk:loadTranslationTable{
   ["ex__diaochan"] = "界貂蝉",
   ["ex__biyue"] = "闭月",
-  [":ex__biyue"] = "回合结束时，你可以摸一张牌，若你没有手牌则改为两张。",
+  [":ex__biyue"] = "结束阶段，你可以摸一张牌，若你没有手牌则改为两张。",
 
   ["$lijian_ex__diaochan1"] = "赢家，才能得到我~",
   ["$lijian_ex__diaochan2"] = "这场比赛，将军可要赢哦~",
@@ -1969,27 +1968,15 @@ Fk:loadTranslationTable{
 }
 
 --华雄
+local huaxiong = General(extension, "std__huaxiong", "qun", 6)
 local yaowu = fk.CreateTriggerSkill{
   name = "yaowu",
   mute = true,
-  anim_type = "negative",
   frequency = Skill.Compulsory,
   events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    if data.chain then return end
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and data.card.color == Card.Red and data.from ~= nil
-  end,
-  on_cost = function(self, event, target, player, data)
-    local room = player.room
-    local from = data.from
-    if data.card.color ~= Card.Red then
-      return true
-    end
-    local choices = {"draw1", "Cancel"}
-    if from:isWounded() then
-      table.insert(choices, 2, "recover")
-    end
-    self.cost_data = room:askForChoice(from, choices, self.name) return self.cost_data ~= "Cancel"
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash"
+    and (data.card.color ~= Card.Red or (data.from and not data.from.dead))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1997,24 +1984,28 @@ local yaowu = fk.CreateTriggerSkill{
       player.room:notifySkillInvoked(player, self.name, "masochism")
       player:broadcastSkillInvoke(self.name, 1)
       player:drawCards(1, self.name)
-      return
-    end
-    local from = data.from
-    player.room:notifySkillInvoked(player, self.name, "negative")
-    player:broadcastSkillInvoke(self.name, 2)
-    if self.cost_data == "recover" then
-      room:recover({
-        who = from,
-        num = 1,
-        recoverBy = from,
-        skillName = self.name
-      })
-    elseif self.cost_data == "draw1" then
-      from:drawCards(1, self.name)
+    else
+      player.room:notifySkillInvoked(player, self.name, "negative")
+      player:broadcastSkillInvoke(self.name, 2)
+      local from = data.from
+      local choices = {"draw1"}
+      if from:isWounded() then
+        table.insert(choices, "recover")
+      end
+      local choice = room:askForChoice(from, choices, self.name)
+      if choice == "recover" then
+        room:recover({
+          who = from,
+          num = 1,
+          recoverBy = from,
+          skillName = self.name
+        })
+      else
+        from:drawCards(1, self.name)
+      end
     end
   end
 }
-local huaxiong = General(extension, "std__huaxiong", "qun", 6)
 huaxiong:addSkill(yaowu)
 Fk:loadTranslationTable{
   ["std__huaxiong"] = "华雄",
@@ -2183,7 +2174,7 @@ panfeng:addSkill(std__kuangfu)
 Fk:loadTranslationTable{
   ["std__panfeng"] = "潘凤",
   ["std__kuangfu"] = "狂斧",
-  [":std__kuangfu"] = "锁定技，当你使用【杀】对其他角色造成伤害后，若此时为你的出牌阶段且你与此阶段未发动过此技能，若其体力值小于/不小于你，你摸两张牌/失去1点体力。",
+  [":std__kuangfu"] = "锁定技，当你使用【杀】对其他角色造成伤害后，若此时为你的出牌阶段且你于此阶段未发动过此技能，若其体力值小于/不小于你，你摸两张牌/失去1点体力。",
 
   ["$std__kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
   ["$std__kuangfu2"] = "这家伙还是给我用吧！",
