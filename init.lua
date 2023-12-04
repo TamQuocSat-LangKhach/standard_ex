@@ -1772,11 +1772,11 @@ local ex__jieyin = fk.CreateActiveSkill{
     if self.interaction.data == "PutIntoEquipArea" then
       return Fk:getCardById(to_select).type == Card.TypeEquip
     else
-      return not Self:prohibitDiscard(Fk:getCardById(to_select))
+      return not Self:prohibitDiscard(Fk:getCardById(to_select)) and Fk:currentRoom():getCardArea(to_select) ~= Player.Equip
     end
   end,
   target_filter = function(self, to_select, selected, cards)
-    if #cards ~= 1 or #selected > 0 or not self.interaction.data then return false end
+    if #cards ~= 1 or #selected > 0 or (not self.interaction.data) or to_select == Self.id then return false end
     local target = Fk:currentRoom():getPlayerById(to_select)
     if self.interaction.data == "PutIntoEquipArea" then
       return target:hasEmptyEquipSlot(Fk:getCardById(cards[1]).sub_type) and target.gender == General.Male
@@ -1787,7 +1787,7 @@ local ex__jieyin = fk.CreateActiveSkill{
   target_num = 1,
   on_use = function(self, room, effect)
     local from = room:getPlayerById(effect.from)
-    local tos = room:getPlayerById(effect.tos[1])
+    local to = room:getPlayerById(effect.tos[1])
     if self.interaction.data == "PutIntoEquipArea" then
       room:moveCards({
         ids = effect.cards,
@@ -1797,28 +1797,32 @@ local ex__jieyin = fk.CreateActiveSkill{
         moveReason = fk.ReasonPut,
       })
     else
-      room:throwCard(effect.cards, self.name, from)
+      room:throwCard(effect.cards, self.name, from, from)
     end
-    if tos.hp < from.hp then
-      if tos:isWounded() then
+    if to.hp < from.hp then
+      if to:isWounded() and not to.dead then
         room:recover({
-          who = tos,
+          who = to,
           num = 1,
-          recoverBy = tos,
+          recoverBy = from,
           skillName = self.name
-        })  
+        })
       end
-      from:drawCards(1, self.name)
-    else
-      if from:isWounded() then
+      if not from.dead then
+        from:drawCards(1, self.name)
+      end
+    elseif to.hp > from.hp then
+      if from:isWounded() and not from.dead then
         room:recover({
           who = from,
           num = 1,
           recoverBy = from,
           skillName = self.name
-        }) 
+        })
       end
-      tos:drawCards(1, self.name)
+      if not to.dead then
+        to:drawCards(1, self.name)
+      end
     end
   end,
 }
@@ -1827,7 +1831,7 @@ sunshangxiang:addSkill("xiaoji")
 Fk:loadTranslationTable{
   ["ex__sunshangxiang"] = "界孙尚香",
   ["ex__jieyin"] = "结姻",
-  [":ex__jieyin"] = "出牌阶段限一次，你可以弃置一张牌选择一名其他男性角色或者将一张装备牌置入一名其他男性角色的装备区，然后你与其体力值较少的角色恢复一点体力，较多的角色摸一张牌。",
+  [":ex__jieyin"] = "出牌阶段限一次，你可以弃置一张手牌并选择一名其他男性角色，或者将一张装备牌置入一名其他男性角色的装备区，然后你与其体力值较少的角色恢复一点体力，较多的角色摸一张牌。",
   ["PutIntoEquipArea"] = "置入装备区",
   ["Discard"] = "弃牌",
   ["$ex__jieyin1"] = "随夫嫁娶，宜室宜家。",
