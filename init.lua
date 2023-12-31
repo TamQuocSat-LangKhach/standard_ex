@@ -1901,7 +1901,8 @@ local liyu = fk.CreateTriggerSkill{
   name = "liyu",
   events = {fk.Damage},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and not data.to.dead and not data.to:isAllNude()
+    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash"
+    and data.to ~= player and not data.to.dead and not data.to:isAllNude()
   end,
   on_cost = function(self, event, target, player, data)
     return target.room:askForSkillInvoke(player, self.name, data, "#liyu-invoke::" .. data.to.id)
@@ -1912,7 +1913,9 @@ local liyu = fk.CreateTriggerSkill{
     local id = room:askForCardChosen(player, to, "hej", self.name)
     room:obtainCard(player, id, true, fk.ReasonPrey)
     if Fk:getCardById(id).type ~= Card.TypeEquip then
-      to:drawCards(1, self.name)
+      if not to.dead then
+        to:drawCards(1, self.name)
+      end
     else
       local card = Fk:cloneCard("duel")
       if player:prohibitUse(card) then return false end
