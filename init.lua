@@ -790,7 +790,7 @@ Fk:loadTranslationTable{
   [":ex__tishen"] = "限定技，准备阶段，若你已受伤，则你可以将体力值回复至上限，然后摸回复数值张牌。",
   ["@paoxiao-turn"] = "咆",
   ["#ex__paoxiao_trigger"] = "咆哮",
-  ["#tishen-invoke"] = "替身:是否发动替身?回复%arg点体力并摸等量张牌？",
+  ["#tishen-invoke"] = "替身: 你可以回复%arg点体力并摸%arg张牌",
 
   ["$ex__paoxiao1"] = "喝啊！",
   ["$ex__paoxiao2"] = "今，必斩汝马下！",
@@ -878,55 +878,63 @@ local ex__longdan = fk.CreateViewAsSkill{
 }
 local yajiao = fk.CreateTriggerSkill{
   name = "yajiao",
-  anim_type = "offensive",
-  events = {fk.CardUseFinished, fk.CardRespondFinished},
+  anim_type = "control",
+  events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.NotActive
-  end,
-  on_cost = function(self, event, target, player, data)
-    local targets = {}
-    local room = player.room
-    local id = room:getNCards(1)[1]
-    room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name)
-    local cardss = Fk:getCardById(id)
-    if cardss.type == data.card.type then
-      for _, p in ipairs(room:getAlivePlayers()) do
-        table.insert(targets, p.id)
-      end
-        --煞笔技能
-    else 
-      for _, p in ipairs(player.room:getOtherPlayers(player)) do
-        if not p:isAllNude() and Fk:currentRoom():getPlayerById(p.id):inMyAttackRange(player) then
-          table.insert(targets, p.id)
-        end
-      end
-    end
-    if #targets > 0 then
-      if cardss.type == data.card.type then 
-        local to = player.room:askForChoosePlayers(player, targets, 1, 1, "#yajiao-card:::"..cardss:toLogString(), self.name, true)
-        if #to > 0 then
-          self.cost_card = cardss
-          self.cost_data = to[1]
-          return true
-        end
-      else
-        local to = player.room:askForChoosePlayers(player, targets, 1, 1, "#yajiao-choose", self.name, true)
-        if #to > 0 then
-          self.cost_card = cardss
-          self.cost_data = to[1]
-          return true
+    if player:hasSkill(self) and player.phase == Player.NotActive then
+      for _, move in ipairs(data) do
+        if move.from == player.id then
+          for _, info in ipairs(move.moveInfo) do
+            if info.fromArea == Card.PlayerHand and table.contains({fk.ReasonUse, fk.ReasonResonpse}, move.moveReason) then
+              return true
+            end
+          end
         end
       end
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = room:getPlayerById(self.cost_data)
-    if self.cost_card.type == data.card.type then
-      room:obtainCard(to, self.cost_card, true, fk.ReasonGive)
+    local card = Fk:getCardById(room.draw_pile[1])
+    local eType
+    for _, move in ipairs(data) do
+      if move.from == player.id then
+        for _, info in ipairs(move.moveInfo) do
+          if info.fromArea == Card.PlayerHand and table.contains({fk.ReasonUse, fk.ReasonResonpse}, move.moveReason) then
+            eType = move.moveReason == fk.ReasonUse and GameEvent.UseCard or GameEvent.RespondCard
+          end
+        end
+      end
+    end
+    local e = room.logic:getCurrentEvent():findParent(eType)
+    local lost
+    if e then
+      local cardEvent = e.data[1]
+      lost = cardEvent.card
+    end
+    room:moveCardTo(card, Card.Processing, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
+    if card.type == lost.type then
+      local to = player.room:askForChoosePlayers(player, table.map(room:getAlivePlayers(), Util.IdMapper), 1, 1, "#yajiao-card:::"..card:toLogString(), self.name, true)
+      if #to > 0 then
+        room:obtainCard(to[1], card, true, fk.ReasonGive)
+      end
     else
-      local card = room:askForCardChosen(player, to, "hej", self.name)
-      room:throwCard(card, self.name, to, player)
+      local targets = {}
+      for _, p in ipairs(room:getOtherPlayers(player)) do
+        if not p:isAllNude() and p:inMyAttackRange(player) then
+          table.insert(targets, p.id)
+        end
+      end
+      if #targets > 0 then
+        local to = player.room:askForChoosePlayers(player, targets, 1, 1, "#yajiao-choose", self.name, true)
+        if #to > 0 then
+          local throw = room:askForCardChosen(player, room:getPlayerById(to[1]), "hej", self.name)
+          room:throwCard(throw, self.name, room:getPlayerById(to[1]), player)
+        end
+      end
+    end
+    if card.area == Card.Processing then
+      room:moveCardTo(card, Card.DrawPile, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
     end
   end,
 }
@@ -939,8 +947,8 @@ Fk:loadTranslationTable{
   [":ex__longdan"] = "你可以将一张【杀】当做【闪】、【闪】当做【杀】、【酒】当做【桃】、【桃】当做【酒】使用或打出。",
   ["yajiao"] = "涯角",
   [":yajiao"] = "当你于回合外因使用或打出而失去手牌后，你可以展示牌堆顶的一张牌。若这两张牌的类别相同，你可以将展示的牌交给一名角色；若类别不同，你可弃置攻击范围内包含你的角色区域里的一张牌。",
-  ["#yajiao-choose"] = "涯角: 选择一名攻击范围内包含你的角色弃置其区域内的一张牌。",
-  ["#yajiao-card"] = "涯角:将 %arg交给一名角色。",
+  ["#yajiao-choose"] = "涯角: 选择一名攻击范围内包含你的角色弃置其区域内的一张牌",
+  ["#yajiao-card"] = "涯角: 你可以将 %arg 交给一名角色",
   ["$ex__longdan1"] = "龙威虎胆，斩敌破阵！",
   ["$ex__longdan2"] = "进退自如，游刃有余！",
   ["$yajiao1"] = "遍寻天下，但求一败！",
@@ -1086,7 +1094,7 @@ Fk:loadTranslationTable{
   ["@jizhi-turn"] = "集智",
 
   ["#ex__qicai_move"] = "奇才",
-  ["#cancelDismantle"] = "由于“%arg”的效果，%card 的弃置被取消",
+  ["#cancelDismantle"] = "由于 %arg 的效果，%card 的弃置被取消",
   ["#jizhi-invoke"] = "集智：是否弃置%arg，令你本回合的手牌上限+1？",
 
   ["$ex__jizhi1"] = "得上通，智集心。",
@@ -1292,7 +1300,7 @@ Fk:loadTranslationTable{
   ["jiyuan"] = "急援",
   [":jiyuan"] = "当一名角色进入濒死时或当你交给一名其他角色牌后，你可令其摸一张牌。",
 
-  ["#jijie-give"] = "机捷：你可将 %arg 交给一名角色",
+  ["#jijie-give"] = "机捷：将 %arg 交给一名角色",
   ["#jiyuan-trigger"] = "急援：你可令 %dest 摸一张牌",
 
   ["$jijie1"] = "一拜一起，未足为劳。",
@@ -1339,7 +1347,8 @@ local ex__jiuyuan = fk.CreateTriggerSkill{
       player:hasSkill(self) and
       target.kingdom == "wu" and
       target.phase ~= Player.NotActive and
-      target.hp >= player.hp
+      target.hp >= player.hp and
+      player:isWounded()
   end,
   on_cost = function(self, event, target, player, data)
     return player.room:askForSkillInvoke(target, self.name, nil, "#ex__jiuyuan-ask::"..player.id)
@@ -2187,5 +2196,7 @@ Fk:loadTranslationTable{
   ["$std__kuangfu2"] = "这家伙还是给我用吧！",
   ["~std__panfeng"] = "潘凤又被华雄斩了……",	
 }
+
+Fk:loadTranslationTable(require 'packages/standard_ex/i18n/en_US', 'en_US')
 
 return extension
