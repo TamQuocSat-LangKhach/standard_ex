@@ -1010,21 +1010,11 @@ local ex__jizhi = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local card = Fk:getCardById(player:drawCards(1)[1])
-    if card.type == Card.TypeBasic and player.phase ~= Player.NotActive and not player:prohibitDiscard(card) then
-      if player.room:askForSkillInvoke(player, self.name, nil, "#jizhi-invoke:::"..card.name) then
+    if card.type == Card.TypeBasic and player.phase ~= Player.NotActive and table.contains(player:getCardIds("h"), card.id) and not player:prohibitDiscard(card) then
+      if player.room:askForSkillInvoke(player, self.name, nil, "#jizhi-invoke:::"..card:toLogString()) then
+        player.room:addPlayerMark(player, MarkEnum.AddMaxCardsInTurn)
         player.room:throwCard(card.id, self.name, player, player)
-        player.room:addPlayerMark(player, "@jizhi-turn",1)
       end
-    end
-  end,
-}
-local ex__jizhi_maxcards = fk.CreateMaxCardsSkill{
-  name = "#ex__jizhi_maxcards",
-  correct_func = function(self, player)
-    if player:hasSkill("ex__jizhi") then
-      return player:getMark("@jizhi-turn")
-    else
-      return 0
     end
   end,
 }
@@ -1081,7 +1071,6 @@ local ex__qicai_move = fk.CreateTriggerSkill{
 }
 ex__qicai:addRelatedSkill(ex__qicai_move)
 local huangyueying = General(extension, "ex__huangyueying", "shu", 3, 3, General.Female)
-ex__jizhi:addRelatedSkill(ex__jizhi_maxcards)
 huangyueying:addSkill(ex__jizhi)
 huangyueying:addSkill(ex__qicai)
 
