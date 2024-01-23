@@ -515,58 +515,10 @@ local ex__rende = fk.CreateActiveSkill{
     room:addPlayerMark(player, "_rende_cards-phase", #cards)
     room:addPlayerMark(target, "_ex__rende-phase", 1)
     if marks < 2 and marks + #cards >= 2 then
-      local success, dat = room:askForUseViewAsSkill(player, "#ex__rende_vs", "#ex__rende-ask", true)
-      if success then
-        local card = Fk.skills["#ex__rende_vs"]:viewAs(dat.cards)
-        local use = {
-          from = player.id,
-          tos = table.map(dat.targets, function(e) return {e} end),
-          card = card,
-        }
-        room:useCard(use)
-      end
+      U.askForUseVirtualCard(room, player, U.getAllCardNames("b"), nil, self.name, "#ex__rende-ask", true, false, false, true)
     end
   end,
 }
-local ex__rende_vs = fk.CreateViewAsSkill{
-  name = "#ex__rende_vs",
-  card_num = 0,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
-  pattern = "^nullification|.|.|.|.|basic",
-  interaction = function(self)
-    local allCardNames, cardNames = {}, {}
-    for _, id in ipairs(Fk:getAllCardIds()) do
-      local card = Fk:getCardById(id)
-      local name = card.name
-      if not table.contains(allCardNames, name) and card.type == Card.TypeBasic and not card.is_derived then
-        table.insert(allCardNames, name)
-        local card = Fk:cloneCard(name)
-        if Self:canUse(card) and not Self:prohibitUse(card) then
-          table.insert(cardNames, name)
-        end
-      end
-    end
-    return UI.ComboBox { choices = cardNames , all_choices = allCardNames}
-  end,
-  view_as = function(self, cards)
-    local choice = self.interaction.data
-    if not choice then return end
-    local c = Fk:cloneCard(choice)
-    c:addSubcards(cards)
-    c.skillName = self.name
-    return c
-  end,
-  enabled_at_play = function(self, player)
-    return false
-  end,
-  enabled_at_response = function(self, player)
-    return false
-  end,
-}
-ex__rende:addRelatedSkill(ex__rende_vs)
-
 ex__liubei:addSkill(ex__rende)
 ex__liubei:addSkill("jijiang")
 
@@ -576,8 +528,6 @@ Fk:loadTranslationTable{
   [":ex__rende"] = "出牌阶段每名角色限一次，你可以将任意张手牌交给一名其他角色，每阶段你以此法给出第二张牌时，你可以视为使用一张基本牌。",
 
   ["#ex__rende-ask"] = "仁德：你可视为使用一张基本牌",
-  ["#ex__rende-vs"] = "仁德：视为使用【%arg】",
-  ["#ex__rende_vs"] = "仁德",
 
   ["$ex__rende1"] = "同心同德，救困扶危！",
   ["$ex__rende2"] = "施仁布泽，乃我大汉立国之本！",
