@@ -515,7 +515,7 @@ local ex__rende = fk.CreateActiveSkill{
     room:addPlayerMark(player, "_rende_cards-phase", #cards)
     room:addPlayerMark(target, "_ex__rende-phase", 1)
     if marks < 2 and marks + #cards >= 2 then
-      U.askForUseVirtualCard(room, player, U.getAllCardNames("b"), nil, self.name, "#ex__rende-ask", true, false, false, true)
+      U.askForUseVirtualCard(room, player, U.getAllCardNames("b"), nil, self.name, "#ex__rende-ask", true, false, false, false)
     end
   end,
 }

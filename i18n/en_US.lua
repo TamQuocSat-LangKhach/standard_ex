@@ -59,8 +59,6 @@ return {
   [":ex__rende"] = "1 x Action Phase x hero, can give any hand card(s) to other heroes. When you give the 2nd card this way, you can view it as using any basic card.",
 
   ["#ex__rende-ask"] = "Benevolence: you can view it as using any basic card",
-  ["#ex__rende-vs"] = "Benevolence: view it as using %arg ",
-  ["#ex__rende_vs"] = "Benevolence",
 
   ["ex__guanyu"] = "JIE Guan Yu",
   ["ex__wusheng"] = "Warrior Saint",
