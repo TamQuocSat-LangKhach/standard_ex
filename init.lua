@@ -230,6 +230,9 @@ local ex__tuxi = fk.CreateTriggerSkill{
 zhangliao:addSkill(ex__tuxi)
 Fk:loadTranslationTable{
   ["ex__zhangliao"] = "界张辽",
+  ["#ex__zhangliao"] = "前将军",
+  ["cv:ex__zhangliao"] = "金垚",
+	["illustrator:ex__zhangliao"] = "张帅",
   ["ex__tuxi"] = "突袭",
   [":ex__tuxi"] = "摸牌阶段，你可以少摸任意张牌并获得等量其他角色各一张手牌。",
   ["#ex__tuxi-choose"] = "突袭：你可以少摸至多%arg张牌，获得等量其他角色各一张手牌",
@@ -637,6 +640,9 @@ guanyu:addSkill(ex__wusheng)
 guanyu:addSkill(ex__yijue)
 Fk:loadTranslationTable{
   ["ex__guanyu"] = "界关羽",
+  ["#ex__guanyu"] = "美髯公",
+  ["cv:ex__guanyu"] = "扬羽Miro",-- 丁翔威
+	["illustrator:ex__guanyu"] = "俊西JUNC",
   ["ex__wusheng"] = "武圣",
   [":ex__wusheng"] = "①你可以将一张红色牌当做【杀】使用或打出。②你使用<font color='red'>♦</font>【杀】无距离限制",
   ["ex__yijue"] = "义绝",
@@ -734,6 +740,9 @@ zhangfei:addSkill(ex__paoxiao)
 zhangfei:addSkill(ex__tishen)
 Fk:loadTranslationTable{
   ["ex__zhangfei"] = "界张飞",
+  ["#ex__zhangfei"] = "万夫不当",
+  ["cv:ex__zhangfei"] = "冷泉月夜",
+	["illustrator:ex__zhangfei"] = "SONGQIJIN",
   ["ex__paoxiao"] = "咆哮",
   [":ex__paoxiao"] = "锁定技①你使用杀无次数限制；②你的回合内，你使用【杀】被闪避时，你获得一枚“咆”；③当你于回合内使用【杀】造成伤害时，若你有“咆”，你弃置所有“咆”令此【杀】伤害+X(X为你弃置的“咆”数量)；④回合结束后，你失去所有“咆”。",
   ["ex__tishen"] = "替身",
@@ -1026,6 +1035,9 @@ huangyueying:addSkill(ex__qicai)
 
 Fk:loadTranslationTable{
   ["ex__huangyueying"] = "界黄月英",
+  ["#ex__huangyueying"] = "归隐的杰女",
+  ["cv:ex__huangyueying"] = "水原", -- 卓思源
+	["illustrator:ex__huangyueying"] = "ASK",
   ["ex__jizhi"] = "集智",
   [":ex__jizhi"] = "当你使用锦囊牌时，你可以摸一张牌。若此牌为基本牌且此时是你的回合内，则你可以弃置之，然后令本回合手牌上限+1。",
   ["ex__qicai"] = "奇才",
@@ -1778,6 +1790,9 @@ sunshangxiang:addSkill(ex__jieyin)
 sunshangxiang:addSkill("xiaoji")
 Fk:loadTranslationTable{
   ["ex__sunshangxiang"] = "界孙尚香",
+  ["#ex__sunshangxiang"] = "弓腰姬",
+  ["cv:ex__sunshangxiang"] = "虫虫", -- 张甄妮
+	["illustrator:ex__sunshangxiang"] = "Thinking",
   ["ex__jieyin"] = "结姻",
   [":ex__jieyin"] = "出牌阶段限一次，你可以弃置一张手牌并选择一名其他男性角色，或者将一张装备牌置入一名其他男性角色的装备区，然后你与其体力值较少的角色恢复一点体力，较多的角色摸一张牌。",
   ["PutIntoEquipArea"] = "置入装备区",
@@ -1882,6 +1897,9 @@ lvbu:addSkill("wushuang")
 
 Fk:loadTranslationTable{
   ["ex__lvbu"] = "界吕布",
+  ["#ex__lvbu"] = "武的化身",
+  ["cv:ex__lvbu"] = "金垚",
+	["illustrator:ex__lvbu"] = "张帅",
   ["liyu"] = "利驭",
   [":liyu"] = "当你使用【杀】对一名其他角色造成伤害后，你可获得其区域里的一张牌。然后若获得的牌不是装备牌，其摸一张牌；若获得的牌是装备牌，则视为你对由其指定的另一名其他角色使用一张【决斗】。",
 
@@ -1912,6 +1930,9 @@ diaochan:addSkill("lijian")
 diaochan:addSkill(ex__biyue)
 Fk:loadTranslationTable{
   ["ex__diaochan"] = "界貂蝉",
+  ["#ex__diaochan"] = "绝世的舞姬",
+  ["cv:ex__diaochan"] = "虫虫",
+  ["illustrator:ex__diaochan"] = "木美人",
   ["ex__biyue"] = "闭月",
   [":ex__biyue"] = "结束阶段，你可以摸一张牌，若你没有手牌则改为两张。",
 
