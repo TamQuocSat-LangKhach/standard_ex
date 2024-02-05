@@ -68,6 +68,13 @@ local ex__fankui = fk.CreateTriggerSkill{
       self:doCost(event, target, player, data)
     end
   end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if room:askForSkillInvoke(player, self.name, data) then
+      return true
+    end
+    self.cancel_cost = true
+  end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local card = room:askForCardChosen(player, data.from, "he", self.name)
@@ -104,6 +111,13 @@ local ex__ganglie = fk.CreateTriggerSkill{
       if self.cancel_cost then break end
       self:doCost(event, target, player, data)
     end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local room = player.room
+    if room:askForSkillInvoke(player, self.name, data) then
+      return true
+    end
+    self.cancel_cost = true
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
