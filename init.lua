@@ -1828,9 +1828,7 @@ local ex__chuli = fk.CreateActiveSkill{
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
   end,
-  card_filter = function(self, to_select, selected)
-    return false
-  end,
+  card_filter = Util.FalseFunc,
   target_filter = function(self, to_select, selected, selected_cards)
     local target = Fk:currentRoom():getPlayerById(to_select)
     return to_select ~= Self.id and not target:isNude() and
@@ -1838,16 +1836,20 @@ local ex__chuli = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
+    room:sortPlayersByAction(effect.tos)
     table.insert(effect.tos, 1, effect.from)
     local draw = {}
     for _, id in ipairs(effect.tos) do
+      if player.dead then break end
       local target = room:getPlayerById(id)
       if not target:isNude() then
-        local card = (target == player) and room:askForDiscard(player, 1, 1, true, self.name, false)[1]
-        or room:askForCardChosen(player, target, "he", self.name)
-        room:throwCard({card}, self.name, target, player)
-        if Fk:getCardById(card).suit == Card.Spade then
-          table.insert(draw, target)
+        local cards = (target == player) and room:askForDiscard(player, 1, 1, true, self.name, false, ".", nil, true) or
+        {room:askForCardChosen(player, target, "he", self.name)}
+        if #cards > 0 then
+          room:throwCard(cards, self.name, target, player)
+          if Fk:getCardById(cards[1]).suit == Card.Spade then
+            table.insert(draw, target)
+          end
         end
       end
     end
@@ -1862,6 +1864,8 @@ huatuo:addSkill("jijiu")
 huatuo:addSkill(ex__chuli)
 Fk:loadTranslationTable{
   ["ex__huatuo"] = "界华佗",
+  ["#ex__huatuo"] = "神医",
+  ["illustrator:ex__huatuo"] = "琛·美第奇",
   ["ex__chuli"] = "除疠",
   [":ex__chuli"] = "出牌阶段限一次，你可以选择任意名势力各不相同的其他角色，然后你弃置你和这些角色的各一张牌。被弃置♠牌的角色各摸一张牌。",
 
