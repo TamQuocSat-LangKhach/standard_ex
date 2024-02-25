@@ -868,7 +868,7 @@ local yajiao = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local card = Fk:getCardById(room.draw_pile[1])
+    local card = Fk:getCardById(room:getNCards(1)[1])
     local eType
     for _, move in ipairs(data) do
       if move.from == player.id then
