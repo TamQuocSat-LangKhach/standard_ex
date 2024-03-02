@@ -11,20 +11,18 @@ local ex__jianxiong = fk.CreateTriggerSkill{
   name = "ex__jianxiong",
   anim_type = "masochism",
   events = {fk.Damaged},
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) 
-  end,
   on_use = function(self, event, target, player, data)
-    if data.card and target.room:getCardArea(data.card) == Card.Processing then
+    if data.card and U.hasFullRealCard(player.room, data.card) then
       player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
     end
-      player:drawCards(1, self.name)
+    player:drawCards(1, self.name)
   end,
 }
 caocao:addSkill(ex__jianxiong)
 caocao:addSkill("hujia")
 Fk:loadTranslationTable{
   ["ex__caocao"] = "界曹操",
+  ["designer:ex__caocao"] = "韩旭",
   ["ex__jianxiong"] = "奸雄",
   [":ex__jianxiong"] = "当你受到伤害后，你可以获得对你造成伤害的牌并摸一张牌。",
   ["$ex__jianxiong1"] = "燕雀，安知鸿鹄之志！",
@@ -85,6 +83,7 @@ simayi:addSkill(ex__guicai)
 simayi:addSkill(ex__fankui)
 Fk:loadTranslationTable{
   ["ex__simayi"] = "界司马懿",
+  ["designer:ex__simayi"] = "韩旭",
   ["ex__guicai"] = "鬼才",
   [":ex__guicai"] = "当判定牌生效之前，你可打出一张牌代替之。",
   ["ex__fankui"] = "反馈",
@@ -145,14 +144,14 @@ local ex__ganglie = fk.CreateTriggerSkill{
 local ex__qingjian = fk.CreateTriggerSkill{
   name = "ex__qingjian",
   anim_type = "support",
-   events = {fk.AfterCardsMove},
+  events = {fk.AfterCardsMove},
   can_trigger = function(self, event, target, player, data)
     if player:hasSkill(self) and player:usedSkillTimes(self.name, Player.HistoryTurn) == 0 then
       if event == fk.AfterCardsMove then
         for _, move in ipairs(data) do
-             if move.to == player.id and move.toArea == Player.Hand and move.skillName ~= self.name and player.phase ~= Player.Draw then
-                 return not player:isNude()
-             end
+          if move.to == player.id and move.toArea == Player.Hand and move.skillName ~= self.name and player.phase ~= Player.Draw then
+            return not player:isNude()
+          end
         end
       end
     end
@@ -182,7 +181,7 @@ local ex__qingjian_active = fk.CreateActiveSkill{
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
-     local types = {}
+    local types = {}
     for _, id in ipairs(effect.cards) do
       table.insertIfNeed(types, Fk:getCardById(id).type)
     end
@@ -247,6 +246,7 @@ Fk:loadTranslationTable{
   ["#ex__zhangliao"] = "前将军",
   ["cv:ex__zhangliao"] = "金垚",
 	["illustrator:ex__zhangliao"] = "张帅",
+  ["designer:ex__zhangliao"] = "韩旭",
   ["ex__tuxi"] = "突袭",
   [":ex__tuxi"] = "摸牌阶段，你可以少摸任意张牌并获得等量其他角色各一张手牌。",
   ["#ex__tuxi-choose"] = "突袭：你可以少摸至多%arg张牌，获得等量其他角色各一张手牌",
@@ -486,11 +486,9 @@ local wangxi = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(1, self.name)
-    if event == fk.Damage then
-      data.to:drawCards(1, self.name)
-    else
-      data.from:drawCards(1, self.name)
-    end
+    local to = event == fk.Damage and data.to or data.from
+    if to.dead then return end
+    to:drawCards(1, self.name)
   end
 }
 lidian:addSkill(xunxun)
@@ -557,12 +555,9 @@ local guanyu = General:new(extension, "ex__guanyu", "shu", 4)
 local wusheng_targetmod = fk.CreateTargetModSkill{
   name = "#wusheng_targetmod",
   anim_type = "offensive",
-  distance_limit_func =  function(self, player, skill, card)
-    if player:hasSkill("ex__wusheng") and skill.trueName == "slash_skill" and card.suit == Card.Diamond then
-      return 999
-    end
-    return 0
-  end,
+  bypass_distances = function (self, player, skill, card, to)
+    return player:hasSkill("ex__wusheng") and skill.trueName == "slash_skill" and card.suit == Card.Diamond
+  end
 }
 local ex__wusheng = fk.CreateViewAsSkill{
   name = "ex__wusheng",
@@ -1629,6 +1624,7 @@ daqiao:addSkill(ex__guose)
 daqiao:addSkill("liuli")
 Fk:loadTranslationTable{
   ["ex__daqiao"] = "界大乔",
+  ["designer:ex__daqiao"] = "韩旭",
   ["ex__guose"] = "国色",
   [":ex__guose"] = "出牌阶段限一次，你可以选择一项：1.将一张<font color='red'>♦</font>牌当【乐不思蜀】使用；"..
   "2.弃置一张<font color='red'>♦</font>牌并弃置场上的一张【乐不思蜀】。选择完成后，你摸一张牌。",
@@ -1715,6 +1711,7 @@ ex__luxun:addSkill(ex__lianying)
 
 Fk:loadTranslationTable{
   ["ex__luxun"] = "界陆逊",
+  ["designer:ex__luxun"] = "韩旭",
   ["ex__qianxun"] = "谦逊",
   [":ex__qianxun"] = "当一张延时锦囊牌或其他角色使用的普通锦囊牌对你生效时，若你是此牌唯一目标，则你可以将所有手牌扣置于武将牌上，然后此回合结束时，你获得这些牌。",
   ["ex__lianying"] = "连营",
@@ -1864,6 +1861,7 @@ huatuo:addSkill("jijiu")
 huatuo:addSkill(ex__chuli)
 Fk:loadTranslationTable{
   ["ex__huatuo"] = "界华佗",
+  ["designer:ex__huatuo"] = "韩旭",
   ["#ex__huatuo"] = "神医",
   ["illustrator:ex__huatuo"] = "琛·美第奇",
   ["ex__chuli"] = "除疠",
