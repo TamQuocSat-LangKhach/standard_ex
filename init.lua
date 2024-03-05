@@ -1069,18 +1069,15 @@ local zhuhai = fk.CreateTriggerSkill{
   events = {fk.EventPhaseStart},
   anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    if player:hasSkill(self) and player ~= target and target.phase == Player.Finish and #player.room.logic:getEventsOfScope(GameEvent.ChangeHp, 1, function (e)
-      local damage = e.data[5]
-      if damage and target == damage.from and target ~= damage.to then
-        return true
-      end
-    end, Player.HistoryTurn) == 1 then
+    if player:hasSkill(self) and player ~= target and target.phase == Player.Finish and #player.room.logic:getActualDamageEvents(1, function(e)
+      return e.data[1].from == target
+    end, Player.HistoryTurn) > 0 then
       local card = Fk:cloneCard("slash")
       return not player:prohibitUse(card) and not player:isProhibited(target, card)
     end
   end,
   on_cost = function(self, event, target, player, data)
-    local use = player.room:askForUseCard(player, "slash", nil, "#zhuhai-ask:" .. target.id, true, {must_targets = {target.id}, bypass_distances = true }) --ex
+    local use = player.room:askForUseCard(player, "slash", nil, "#zhuhai-ask:" .. target.id, true, {exclusive_targets = {target.id}, bypass_distances = true }) --ex
     if use then
       self.cost_data = use
       return true
@@ -1166,7 +1163,7 @@ std__xushu:addRelatedSkill(jianyan)
 Fk:loadTranslationTable{
   ["std__xushu"] = "徐庶",
   ["zhuhai"] = "诛害",
-  [":zhuhai"] = "其他角色的结束阶段，若该角色本回合造成过伤害，则你可以对其使用【杀】（无距离限制）。",
+  [":zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用【杀】（无距离限制）。",
   ["qianxin"] = "潜心",
   [":qianxin"] = "觉醒技，当你造成伤害后，若你已受伤，你减1点体力上限，并获得〖荐言〗。",
   ["jianyan"] = "荐言",
