@@ -1535,7 +1535,7 @@ local ex__fanjian = fk.CreateActiveSkill{
   card_num = 1,
   target_num = 1,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isNude()
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
   card_filter = function(self, to_select, selected)
     return #selected == 0 and Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand
@@ -1555,7 +1555,9 @@ local ex__fanjian = fk.CreateActiveSkill{
     if target.dead then return end
     local choices = { "ex__fanjian_show:::" .. suitString, "loseHp" }
     if target.hp <= 0 then table.remove(choices) end
-    if target:isKongcheng() or suit == Card.NoSuit then table.remove(choices, 1) end
+    if (target:isKongcheng() and table.every(target:getCardIds(Player.Equip), function (id)
+      return Fk:getCardById(id).suit ~= suit
+    end)) or suit == Card.NoSuit then table.remove(choices, 1) end
     if #choices == 0 then return end
     local choice = room:askForChoice(target, choices, self.name)
     if choice == "loseHp" then
