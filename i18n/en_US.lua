@@ -34,7 +34,7 @@ return {
 
   ["ex__luoyi_get"] = "get all weapons, Duel and basic cards from shown",
   ["@@ex__luoyi"] = "Bare.",
-  ["ex__luoyi_trigger"] = "Bare Chested",
+  ["ex__luoyi_delay"] = "Bare Chested",
 
   ["ex__guojia"] = "JIE Guo Jia",
   ["ex__yiji"] = "Bequeathed Strategy",
@@ -45,7 +45,7 @@ return {
   ["ex__luoshen"] = "Goddess Luo",
   [":ex__luoshen"] = "At Beginning Phase, can be judged. If the result is black, get it and can repeat. The cards obtained this way become hand limitless this turn",
 
-  ["@@ex__luoshen-turn"] = "Luo.",
+  ["@@ex__luoshen-inhand-turn"] = "Luo.",
 
   ["lidian"] = "Li Dian",
   ["xunxun"] = "Sincerity",
