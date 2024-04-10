@@ -230,7 +230,7 @@ local ex__tuxi = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local tos = table.simpleClone(self.cost_data())
+    local tos = table.simpleClone(self.cost_data)
     room:sortPlayersByAction(tos)
     for _, id in ipairs(tos) do
       local to = room:getPlayerById(id)
