@@ -2170,7 +2170,7 @@ Fk:loadTranslationTable{
   ["$yicong_std__gongsunzan2"] = "变阵冲轭，以守代攻。",
   ["~std__gongsunzan"] = "皇图霸业梦，付之，一炬中……",	
 }
-
+-- 2023版标准包潘凤
 local panfeng = General(extension, "std__panfeng", "qun", 4)
 local std__kuangfu = fk.CreateTriggerSkill{
   name = "std__kuangfu",
@@ -2195,9 +2195,10 @@ local std__kuangfu = fk.CreateTriggerSkill{
 panfeng:addSkill(std__kuangfu)
 Fk:loadTranslationTable{
   ["std__panfeng"] = "潘凤",
+  ["#std__panfeng"] = "联军上将",
   ["std__kuangfu"] = "狂斧",
   [":std__kuangfu"] = "锁定技，当你使用【杀】对其他角色造成伤害后，若此时为你的出牌阶段且你于此阶段未发动过此技能且其体力值："..
-  "小于你，你摸两张牌；不小于你，其失去1点体力。",
+  "小于你，你摸两张牌；不小于你，你失去1点体力。",
 
   ["$std__kuangfu1"] = "吾乃上将潘凤，可斩华雄！",
   ["$std__kuangfu2"] = "这家伙还是给我用吧！",
