@@ -407,24 +407,7 @@ local ex__luoshen_obtain = fk.CreateTriggerSkill{
     data.card.color == Card.Black and player.room:getCardArea(data.card.id) == Card.Processing
   end,
   on_use = function(self, event, target, player, data)
-    player.room:moveCardTo(data.card, Player.Hand, player, fk.ReasonPrey, self.name, nil, false, player.id)
-  end,
-
-  refresh_events = {fk.AfterCardsMove},
-  can_refresh = function(self, event, target, player, data)
-    return true
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    for _, move in ipairs(data) do
-      if move.to == player.id and move.toArea == Card.PlayerHand and move.skillName == self.name then
-        for _, info in ipairs(move.moveInfo) do
-          if table.contains(player.player_cards[Player.Hand], info.cardId) then
-            room:setCardMark(Fk:getCardById(info.cardId), "@@ex__luoshen-inhand-turn", 1)
-          end
-        end
-      end
-    end
+    player.room:moveCardTo(data.card, Player.Hand, player, fk.ReasonPrey, self.name, nil, false, player.id, "@@ex__luoshen-inhand-turn")
   end,
 }
 local ex__luoshen_max = fk.CreateMaxCardsSkill{
