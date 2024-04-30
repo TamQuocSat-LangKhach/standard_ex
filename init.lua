@@ -285,9 +285,7 @@ local ex__luoyi = fk.CreateTriggerSkill{
       end
     end
     if #cards > 0 and U.askforViewCardsAndChoice(player, cids, {"ex__luoyi_get", "Cancel"}, self.name, "#ex__luoyi-ask") == "ex__luoyi_get" then
-      local dummy = Fk:cloneCard("slash")
-      dummy:addSubcards(cards)
-      room:obtainCard(player, dummy, true, fk.ReasonJustMove, player.id)
+      room:obtainCard(player, cards, true, fk.ReasonJustMove, player.id)
       if not player.dead then room:addPlayerMark(player, "@@ex__luoyi") end
       clearRemain(cids)
       return true
@@ -407,7 +405,7 @@ local ex__luoshen_obtain = fk.CreateTriggerSkill{
     data.card.color == Card.Black and player.room:getCardArea(data.card.id) == Card.Processing
   end,
   on_use = function(self, event, target, player, data)
-    player.room:moveCardTo(data.card, Player.Hand, player, fk.ReasonPrey, self.name, nil, false, player.id, "@@ex__luoshen-inhand-turn")
+    player.room:obtainCard(player, data.card, true, nil, player.id, "ex__luoshen", "@@ex__luoshen-inhand-turn")
   end,
 }
 local ex__luoshen_max = fk.CreateMaxCardsSkill{
@@ -880,7 +878,7 @@ local yajiao = fk.CreateTriggerSkill{
     if card.type == lost.type then
       local to = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, 1, "#yajiao-card:::"..card:toLogString(), self.name, true)
       if #to > 0 then
-        room:obtainCard(to[1], card, true, fk.ReasonGive)
+        room:obtainCard(to[1], card, true, fk.ReasonGive, player.id)
       end
     else
       local targets = {}
@@ -978,7 +976,8 @@ local ex__jizhi = fk.CreateTriggerSkill{
   anim_type = "drawcard",
   events = {fk.CardUsing},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card.type == Card.TypeTrick
+    return target == player and player:hasSkill(self) and data.card.type == Card.TypeTrick and
+    (not data.card:isVirtual() or #data.card.subcards == 0)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -1462,7 +1461,8 @@ local zhaxiang = fk.CreateTriggerSkill{
 
   refresh_events = {fk.PreCardUse},
   can_refresh = function(self, event, target, player, data)
-    return data.card.trueName == "slash" and data.card.color == Card.Red and player:getMark("@@zhaxiang-phase") > 0
+    return player == target and data.card.trueName == "slash" and data.card.color == Card.Red and
+    player:getMark("@@zhaxiang-phase") > 0
   end,
   on_refresh = function(self, event, target, player, data)
     data.disresponsiveList = table.map(player.room.alive_players, Util.IdMapper)
@@ -1667,10 +1667,7 @@ local ex__qianxun_delay = fk.CreateTriggerSkill{
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    local dummy = Fk:cloneCard("zixing")
-    dummy:addSubcards(player:getPile("ex__qianxun"))
-    local room = player.room
-    room:obtainCard(player.id, dummy, false)
+    player.room:obtainCard(player.id, player:getPile("ex__qianxun"), false)
   end,
 }
 local ex__lianying = fk.CreateTriggerSkill{
@@ -2126,15 +2123,13 @@ local qiaomeng_get = fk.CreateTriggerSkill{
         end
       end
     end
-    local dummy = Fk:cloneCard("dilu")
-    dummy:addSubcards(cids)
     local record = player:getMark("_qiaomeng") ~= 0 and player:getMark("_qiaomeng") or {}
     table.forEach(cids, function(cid)
       table.removeOne(record, cid)
     end)
     if #record == 0 then record = 0 end
     room:setPlayerMark(player, "_qiaomeng", record)
-    room:obtainCard(player, dummy, true, fk.ReasonPrey)
+    room:obtainCard(player, cids, true, fk.ReasonPrey)
   end,
 }
 qiaomeng:addRelatedSkill(qiaomeng_get)
