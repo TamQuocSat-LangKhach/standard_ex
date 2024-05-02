@@ -536,7 +536,7 @@ local ex__rende = fk.CreateActiveSkill{
     local marks = player:getMark("_rende_cards-phase")
     room:moveCardTo(cards, Player.Hand, target, fk.ReasonGive, self.name, nil, false)
     room:addPlayerMark(player, "_rende_cards-phase", #cards)
-    room:addPlayerMark(target, "_ex__rende-phase", 1)
+    room:setPlayerMark(target, "_ex__rende-phase", 1)
     if marks < 2 and marks + #cards >= 2 then
       U.askForUseVirtualCard(room, player, U.getAllCardNames("b"), nil, self.name, "#ex__rende-ask", true, false, false, false)
     end
@@ -1508,7 +1508,7 @@ local ex__yingzi = fk.CreateTriggerSkill{
 local ex__yingzi_maxcards = fk.CreateMaxCardsSkill{
   name = "#ex__yingzi_maxcards",
   fixed_func = function(self, player)
-    if player:hasSkill(ex__yingzi) then
+    if player:hasShownSkill(ex__yingzi) then
       return player.maxHp
     end
   end
@@ -1758,11 +1758,7 @@ local ex__jieyin = fk.CreateActiveSkill{
   target_filter = function(self, to_select, selected, cards)
     if #cards ~= 1 or #selected > 0 or (not self.interaction.data) or to_select == Self.id then return false end
     local target = Fk:currentRoom():getPlayerById(to_select)
-    if self.interaction.data == "PutIntoEquipArea" then
-      return target:hasEmptyEquipSlot(Fk:getCardById(cards[1]).sub_type) and target.gender == General.Male
-    else
-      return target.gender == General.Male
-    end
+    return target:isMale() and (self.interaction.data == "Discard" or target:hasEmptyEquipSlot(Fk:getCardById(cards[1]).sub_type))
   end,
   target_num = 1,
   on_use = function(self, room, effect)
