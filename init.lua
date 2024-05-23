@@ -789,6 +789,8 @@ zhugeliang:addSkill("kongcheng")
 
 Fk:loadTranslationTable{
   ["ex__zhugeliang"] = "界诸葛亮",
+  ["#ex__zhugeliang"] = "迟暮的丞相",
+	["illustrator:ex__zhugeliang"] = "黑桃J&Thinking",
   ["ex__guanxing"] = "观星",
   [":ex__guanxing"] = "准备阶段，你可以观看牌堆顶的5张牌(场上存活人数＜4时改为3张)，并以任意顺序置于牌堆顶或牌堆顶。若你将这些牌均放至牌堆底，则结束阶段你可以发动〖观星〗。",
   ["$ex__guanxing1"] = "天星之变，吾窥探一二。",
@@ -864,21 +866,19 @@ local yajiao = fk.CreateTriggerSkill{
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerHand and table.contains({fk.ReasonUse, fk.ReasonResonpse}, move.moveReason) then
             eType = move.moveReason == fk.ReasonUse and GameEvent.UseCard or GameEvent.RespondCard
+            break
           end
         end
       end
     end
     local e = room.logic:getCurrentEvent():findParent(eType)
-    local lost
-    if e then
-      local cardEvent = e.data[1]
-      lost = cardEvent.card
-    end
+    if not e then return end
+    local lost = e.data[1].card
     room:moveCardTo(card, Card.Processing, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
     if card.type == lost.type then
       local to = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, 1, "#yajiao-card:::"..card:toLogString(), self.name, true)
       if #to > 0 then
-        room:obtainCard(to[1], card, true, fk.ReasonGive, player.id)
+        room:obtainCard(to[1], card, true, fk.ReasonGive, player.id, self.name)
       end
     else
       local targets = {}
@@ -895,8 +895,8 @@ local yajiao = fk.CreateTriggerSkill{
         end
       end
     end
-    if card.area == Card.Processing then
-      room:moveCardTo(card, Card.DrawPile, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
+    if room:getCardArea(card) == Card.Processing then
+      room:moveCardTo(card, Card.DrawPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
     end
   end,
 }
@@ -905,6 +905,8 @@ zhaoyun:addSkill(ex__longdan)
 zhaoyun:addSkill(yajiao)
 Fk:loadTranslationTable{
   ["ex__zhaoyun"] = "界赵云",
+  ["#ex__zhaoyun"] = "虎威将军",
+	["illustrator:ex__zhaoyun"] = "DH",
   ["ex__longdan"] = "龙胆",
   [":ex__longdan"] = "你可以将一张【杀】当做【闪】、【闪】当做【杀】、【酒】当做【桃】、【桃】当做【酒】使用或打出。",
   ["yajiao"] = "涯角",
@@ -960,6 +962,8 @@ machao:addSkill("mashu")
 machao:addSkill(ex__tieji)
 Fk:loadTranslationTable{
   ["ex__machao"] = "界马超",
+  ["#ex__machao"] = "一骑当千",
+	["illustrator:ex__machao"] = "木美人&张帅&KayaK",
   ["ex__tieji"] = "铁骑",
   [":ex__tieji"] = "当你使用【杀】指定目标后，你可以令其本回合内非锁定技失效，然后进行一次判定，其需弃置一张花色与判定结果花色相同的牌，否则其无法响应此【杀】。",
   ["ex__tieji_invalidity"] = "铁骑",
@@ -1173,6 +1177,8 @@ std__xushu:addRelatedSkill(jianyan)
 
 Fk:loadTranslationTable{
   ["std__xushu"] = "徐庶",
+  ["#std__xushu"] = "化剑为犁",
+	["illustrator:std__xushu"] = "Zero",
   ["zhuhai"] = "诛害",
   [":zhuhai"] = "其他角色的结束阶段，若其本回合造成过伤害，你可对其使用【杀】（无距离限制）。",
   ["qianxin"] = "潜心",
@@ -1261,6 +1267,8 @@ yijik:addSkill(jiyuan)
 
 Fk:loadTranslationTable{
   ["yijik"] = "伊籍",
+  ["#yijik"] = "礼仁同渡",
+	["illustrator:yijik"] = "alien",
   ["jijie"] = "机捷",
   [":jijie"] = "出牌阶段限一次，你可以观看牌堆底的一张牌，将此牌交给一名角色。",
   ["jiyuan"] = "急援",
@@ -1334,6 +1342,8 @@ sunquan:addSkill(ex__zhiheng)
 sunquan:addSkill(ex__jiuyuan)
 Fk:loadTranslationTable{
   ["ex__sunquan"] = "界孙权",
+  ["#ex__sunquan"] = "年轻的贤君",
+	["illustrator:ex__sunquan"] = "凝聚永恒",
   ["ex__zhiheng"] = "制衡",
   [":ex__zhiheng"] = "出牌阶段限一次，你可以弃置任意张牌并摸等量的牌。若你以此法弃置了所有的手牌，你多摸一张牌。",
   ["ex__jiuyuan"] = "救援",
@@ -1372,6 +1382,8 @@ ganning:addSkill("qixi")
 ganning:addSkill(fenwei)
 Fk:loadTranslationTable{
   ["ex__ganning"] = "界甘宁",
+  ["#ex__ganning"] = "锦帆游侠",
+	["illustrator:ex__ganning"] = "巴萨小马",
   ["fenwei"] = "奋威",
   [":fenwei"] = "限定技，当一张锦囊牌指定多个目标后，你可令此牌对其中任意个目标无效。",
   ["#fenwei-choose"] = "奋威：你可以令此%arg对任意个目标无效",
@@ -1407,6 +1419,8 @@ lvmeng:addSkill(qinxue)
 lvmeng:addRelatedSkill("gongxin")
 Fk:loadTranslationTable{
   ["ex__lvmeng"] = "界吕蒙",
+  ["#ex__lvmeng"] = "士别三日",
+	["illustrator:ex__lvmeng"] = "樱花闪乱",
   ["qinxue"] = "勤学",
   [":qinxue"] = "觉醒技，准备阶段，若你的手牌数比体力值多3或更多（游戏人数大于7则改为2），你减1点体力上限，然后获得技能〖攻心〗。",
 
@@ -1480,6 +1494,8 @@ huanggai:addSkill(ex__kurou)
 huanggai:addSkill(zhaxiang)
 Fk:loadTranslationTable{
   ["ex__huanggai"] = "界黄盖",
+  ["#ex__huanggai"] = "轻身为国",
+	["illustrator:ex__huanggai"] = "G.G.G.",
   ["ex__kurou"] = "苦肉",
   [":ex__kurou"] = "出牌阶段限一次，你可以弃置一张牌并失去一点体力。",
   ["zhaxiang"] = "诈降",
@@ -1563,6 +1579,8 @@ zhouyu:addSkill(ex__yingzi)
 zhouyu:addSkill(ex__fanjian)
 Fk:loadTranslationTable{
   ["ex__zhouyu"] = "界周瑜",
+  ["#ex__zhouyu"] = "大都督",
+	["illustrator:ex__zhouyu"] = "KayaK",
   ["ex__yingzi"] = "英姿",
   [":ex__yingzi"] = "锁定技，摸牌阶段，你多摸一张牌；你的手牌上限等同于你的体力上限。",
   ["ex__fanjian"] = "反间",
@@ -1632,7 +1650,9 @@ daqiao:addSkill(ex__guose)
 daqiao:addSkill("liuli")
 Fk:loadTranslationTable{
   ["ex__daqiao"] = "界大乔",
+  ["#ex__daqiao"] = "矜持之花",
   ["designer:ex__daqiao"] = "韩旭",
+	["illustrator:ex__daqiao"] = "DH",
   ["ex__guose"] = "国色",
   [":ex__guose"] = "出牌阶段限一次，你可以选择一项：1.将一张<font color='red'>♦</font>牌当【乐不思蜀】使用；"..
   "2.弃置一张<font color='red'>♦</font>牌并弃置场上的一张【乐不思蜀】。选择完成后，你摸一张牌。",
@@ -1720,7 +1740,9 @@ ex__luxun:addSkill(ex__lianying)
 
 Fk:loadTranslationTable{
   ["ex__luxun"] = "界陆逊",
+  ["#ex__luxun"] = "儒生雄才",
   ["designer:ex__luxun"] = "韩旭",
+	["illustrator:ex__luxun"] = "depp",
   ["ex__qianxun"] = "谦逊",
   [":ex__qianxun"] = "当一张延时锦囊牌或其他角色使用的普通锦囊牌对你生效时，若你是此牌唯一目标，则你可以将所有手牌扣置于武将牌上，然后此回合结束时，你获得这些牌。",
   ["ex__lianying"] = "连营",
