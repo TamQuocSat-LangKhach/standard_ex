@@ -22,7 +22,9 @@ caocao:addSkill(ex__jianxiong)
 caocao:addSkill("hujia")
 Fk:loadTranslationTable{
   ["ex__caocao"] = "界曹操",
+  ["#ex__caocao"] = "魏武帝",
   ["designer:ex__caocao"] = "韩旭",
+  ["illustrator:ex__caocao"] = "青骑士",
   ["ex__jianxiong"] = "奸雄",
   [":ex__jianxiong"] = "当你受到伤害后，你可以获得对你造成伤害的牌并摸一张牌。",
   ["$ex__jianxiong1"] = "燕雀，安知鸿鹄之志！",
@@ -85,7 +87,9 @@ simayi:addSkill(ex__fankui)
 simayi:addSkill(ex__guicai)
 Fk:loadTranslationTable{
   ["ex__simayi"] = "界司马懿",
+  ["#ex__simayi"] = "狼顾之鬼",
   ["designer:ex__simayi"] = "韩旭",
+  ["illustrator:ex__simayi"] = "木美人",
   ["ex__fankui"] = "反馈",
   [":ex__fankui"] = "当你受到1点伤害后，你可以获得来源的一张牌。",
   ["ex__guicai"] = "鬼才",
@@ -193,6 +197,8 @@ xiahoudun:addSkill(ex__ganglie)
 xiahoudun:addSkill(ex__qingjian)
 Fk:loadTranslationTable{
   ["ex__xiahoudun"] = "界夏侯惇",
+  ["#ex__xiahoudun"] = "独眼的罗刹",
+  ["illustrator:ex__xiahoudun"] = "DH",
   ["ex__ganglie"] = "刚烈",
   [":ex__ganglie"] = "当你受到1点伤害后，你可判定，若结果为：红色，你对来源造成1点伤害；黑色，你弃置来源的一张牌。",
   ["ex__qingjian"] = "清俭",
@@ -319,6 +325,8 @@ ex__luoyi:addRelatedSkill(ex__luoyi_delay)
 xuchu:addSkill(ex__luoyi)
 Fk:loadTranslationTable{
   ["ex__xuchu"] = "界许褚",
+  ["#ex__xuchu"] = "虎痴",
+  ["illustrator:ex__xuchu"] = "巴萨小马",
   ["ex__luoyi"] = "裸衣",
   [":ex__luoyi"] = "摸牌阶段开始时，你亮出牌堆顶的三张牌，然后你可以获得其中的基本牌、武器牌或【决斗】。若如此做，你放弃摸牌，且直到你的下个回合开始，你为伤害来源的【杀】或【决斗】造成的伤害值+1。",
 
@@ -359,6 +367,8 @@ local ex__yiji = fk.CreateTriggerSkill{
 ex__guojia:addSkill(ex__yiji)
 Fk:loadTranslationTable{
   ["ex__guojia"] = "界郭嘉",
+  ["#ex__guojia"] = "早终的先知",
+  ["illustrator:ex__guojia"] = "木美人",
   ["ex__yiji"] = "遗计",
   [":ex__yiji"] = "当你受到1点伤害后，你可以摸两张牌，然后你可以将至多两张手牌交给一至两名其他角色。",
   ["#ex__yiji-give"] = "遗计：将至多%arg张手牌分配给其他角色",
@@ -420,6 +430,8 @@ ex__zhenji:addSkill(ex__luoshen)
 ex__zhenji:addSkill("qingguo")
 Fk:loadTranslationTable{
   ["ex__zhenji"] = "界甄姬",
+  ["#ex__zhenji"] = "薄幸的美人",
+  ["illustrator:ex__zhenji"] = "Town",
   ["ex__luoshen"] = "洛神",
   [":ex__luoshen"] = "准备阶段开始时，你可以进行判定，当黑色判定牌生效后，你获得之并可以重复此流程。你以此法获得的牌在本回合不计入手牌上限。",
 
@@ -502,6 +514,8 @@ lidian:addSkill(xunxun)
 lidian:addSkill(wangxi)
 Fk:loadTranslationTable{
   ["lidian"] = "李典",
+  ["#lidian"] = "深明大义",
+  ["illustrator:lidian"] = "张帅",
   ["xunxun"] = "恂恂",
   [":xunxun"] = "摸牌阶段开始时，你可以观看牌堆顶的四张牌，将其中两张牌以任意顺序置于牌堆顶，其余以任意顺序置于牌堆底。",
   ["wangxi"] = "忘隙",
@@ -547,6 +561,8 @@ ex__liubei:addSkill("jijiang")
 
 Fk:loadTranslationTable{
   ["ex__liubei"] = "界刘备",
+  ["#ex__liubei"] = "乱世的枭雄",
+  ["illustrator:ex__liubei"] = "木美人",
   ["ex__rende"] = "仁德",
   [":ex__rende"] = "出牌阶段每名角色限一次，你可以将任意张手牌交给一名其他角色，每阶段你以此法给出第二张牌时，你可以视为使用一张基本牌。",
 
@@ -777,7 +793,7 @@ local ex__guanxing = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local result = U.askForGuanxing(player, room:getNCards(#room.alive_players > 4 and 5 or 3))
+    local result = U.askForGuanxing(player, room:getNCards(#room.alive_players < 4 and 3 or 5))
     if #result.top == 0 and player.phase == Player.Start then
       room:setPlayerMark(player, "guanxing-turn", 1)
     end
