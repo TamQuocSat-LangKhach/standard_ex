@@ -455,7 +455,7 @@ local xunxun = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local ret = U.askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
+    local ret = room:askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
     local top, bottom = ret[2], ret[1]
     for i = #top, 1, -1 do
       table.insert(room.draw_pile, 1, top[i])
@@ -793,7 +793,7 @@ local ex__guanxing = fk.CreateTriggerSkill{
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local result = U.askForGuanxing(player, room:getNCards(#room.alive_players < 4 and 3 or 5))
+    local result = room:askForGuanxing(player, room:getNCards(#room.alive_players < 4 and 3 or 5))
     if #result.top == 0 and player.phase == Player.Start then
       room:setPlayerMark(player, "guanxing-turn", 1)
     end
