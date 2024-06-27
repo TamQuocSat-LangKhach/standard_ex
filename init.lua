@@ -278,7 +278,7 @@ local ex__luoyi = fk.CreateTriggerSkill{
   on_use = function(self, event, target, player, data)
     local room = player.room
     local cids = room:getNCards(3)
-    room:moveCardTo(cids, Card.Processing, nil, fk.ReasonJustMove, self.name)
+    room:moveCardTo(cids, Card.Processing, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
     local function clearRemain(ids)
       ids = table.filter(ids, function(id) return room:getCardArea(id) == Card.Processing end)
       room:moveCardTo(ids, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, self.name, nil, true, player.id)
@@ -1165,7 +1165,7 @@ local jianyan = fk.CreateActiveSkill{
     if #room:getCardsFromPileByRule(_pattern, 1, "allPiles") == 0 then return false end
     while true do
       local id = room:getNCards(1)[1]
-      room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name)
+      room:moveCardTo(id, Card.Processing, nil, fk.ReasonJustMove, self.name, nil, true, player.id)
       room:delay(300)
       local c = Fk:getCardById(id)
       if c:getColorString() == pattern or c:getTypeString() == pattern then
