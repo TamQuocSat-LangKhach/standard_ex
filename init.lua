@@ -172,7 +172,7 @@ local ex__qingjian = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local tos, cards = U.askForChooseCardsAndPlayers(room, player, 1, 999,
+    local tos, cards = room:askForChooseCardsAndPlayers(player, 1, 999,
     table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, ".|.|.|hand",
     "#ex__qingjian-invoke", self.name, true, false)
     if #tos > 0 and #cards > 0 then
