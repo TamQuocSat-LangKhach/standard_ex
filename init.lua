@@ -563,8 +563,8 @@ local ex__rende = fk.CreateActiveSkill{
           card = Fk:cloneCard(use.card.name),
           from = player.id,
           tos = use.tos,
-          skillName = self.name,
         }
+        use.card.skillName = self.name
         room:useCard(use)
       end
     end
@@ -1346,11 +1346,12 @@ local ex__zhiheng = fk.CreateActiveSkill{
   anim_type = "drawcard",
   min_card_num = 1,
   target_num = 0,
-  card_filter = function(self, to_select, selected)
-    return not Self:prohibitDiscard(Fk:getCardById(to_select))
-  end,
+  prompt = "#ex__zhiheng",
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return not Self:prohibitDiscard(Fk:getCardById(to_select))
   end,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
@@ -1405,6 +1406,7 @@ Fk:loadTranslationTable{
   [":ex__zhiheng"] = "出牌阶段限一次，你可以弃置任意张牌并摸等量的牌。若你以此法弃置了所有的手牌，你多摸一张牌。",
   ["ex__jiuyuan"] = "救援",
   [":ex__jiuyuan"] = "主公技，其他吴势力角色于其回合内回复体力时，若其体力值大于等于你，则其可以改为令你回复1点体力，然后其摸一张牌。",
+  ["#ex__zhiheng"] = "制衡：你可以弃置任意张牌并摸等量的牌，若弃置了所有的手牌，多摸一张牌",
   ["#ex__jiuyuan-ask"] = "救援：你可以改为令 %dest 回复1点体力，然后你摸一张牌",
   ["$ex__zhiheng1"] = "不急不躁，稳谋应对。",
   ["$ex__zhiheng2"] = "制衡互牵，大局可安。",
@@ -1462,8 +1464,8 @@ local qinxue = fk.CreateTriggerSkill{
       player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
   can_wake = function(self, event, target, player, data)
-    return (#player.player_cards[Player.Hand] - player.hp > 2) or
-      (#player.room:getAllPlayers() > 7 and #player.player_cards[Player.Hand] - player.hp > 1)
+    return (player:getHandcardNum() - player.hp > 2) or
+      (#player.room.players > 7 and player:getHandcardNum() - player.hp > 1)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
@@ -2106,6 +2108,9 @@ local yaowu = fk.CreateTriggerSkill{
 huaxiong:addSkill(yaowu)
 Fk:loadTranslationTable{
   ["std__huaxiong"] = "华雄",
+  ["#std__huaxiong"] = "飞扬跋扈",
+  ["illustrator:std__huaxiong"] = "地狱许",
+
   ["yaowu"] = "耀武",
   [":yaowu"] = "锁定技，当你受到【杀】造成的伤害时，若此【杀】为红色，伤害来源回复1点体力或摸一张牌；若此【杀】不为红色，你摸一张牌。",
 
@@ -2161,6 +2166,9 @@ std__yuanshu:addSkill(tongji)
 
 Fk:loadTranslationTable{
   ["std__yuanshu"] = "袁术",
+  ["#std__yuanshu"] = "野心渐增",
+  ["illustrator:std__yuanshu"] = "LiuHeng",
+
   ["wangzun"] = "妄尊",
   [":wangzun"] = "主公的准备阶段，你可以摸一张牌，然后其本回合手牌上限-1。",
   ["tongji"] = "同疾",
@@ -2237,9 +2245,11 @@ gongsunzan:addSkill(qiaomeng)
 gongsunzan:addSkill("yicong")
 Fk:loadTranslationTable{
   ["std__gongsunzan"] = "公孙瓒",
+  ["#std__gongsunzan"] = "白马将军",
+  ["illustrator:std__gongsunzan"] = "Vincent",
+
   ["qiaomeng"] = "趫猛",
   [":qiaomeng"] = "当你使用的黑色【杀】对一名角色造成伤害后，你可以弃置其装备区里的一张牌。当此牌移至弃牌堆后，若此牌为坐骑牌，你获得此牌。",
-
   ["#qiaomeng_get"] = "趫猛",
 
   ["$qiaomeng1"] = "秣马厉兵，枕戈待战。",
