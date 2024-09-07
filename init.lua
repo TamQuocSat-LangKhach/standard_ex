@@ -556,8 +556,17 @@ local ex__rende = fk.CreateActiveSkill{
     room:setPlayerMark(target, "_ex__rende-phase", 1)
     if marks < 2 and marks + #cards >= 2 then
       cards = U.getUniversalCards(room, "b", false)
-      U.askForUseRealCard(room, player, cards, nil, self.name, "#ex__rende-ask",
-        {expand_pile = cards, bypass_times = false, extraUse = false}, false, true)
+      local use = U.askForUseRealCard(room, player, cards, nil, self.name, "#ex__rende-ask",
+        {expand_pile = cards, bypass_times = false, extraUse = false}, true, true)
+      if use then
+        use = {
+          card = Fk:cloneCard(use.card.name),
+          from = player.id,
+          tos = use.tos,
+          skillName = self.name,
+        }
+        room:useCard(use)
+      end
     end
   end,
 }
@@ -570,7 +579,7 @@ Fk:loadTranslationTable{
   ["illustrator:ex__liubei"] = "木美人",
   ["ex__rende"] = "仁德",
   [":ex__rende"] = "出牌阶段每名角色限一次，你可以将任意张手牌交给一名其他角色，每阶段你以此法给出第二张牌时，你可以视为使用一张基本牌。",
-  ["#ex__rende"] = "仁德：将任意张手牌交给一名角色，若阶段交出达到两张，你可以视为使用一张基本牌",
+  ["#ex__rende"] = "仁德：将任意张手牌交给一名角色，若此阶段交出达到两张，你可以视为使用一张基本牌",
   ["#ex__rende-ask"] = "仁德：你可视为使用一张基本牌",
 
   ["$ex__rende1"] = "同心同德，救困扶危！",
@@ -1524,13 +1533,13 @@ local zhaxiang = fk.CreateTriggerSkill{
 }
 local zhaxiang_delay = fk.CreateTriggerSkill{
   name = "#zhaxiang_delay",
-  events = {fk.PreCardUse},
-  can_trigger = function(self, event, target, player, data)
+
+  refresh_events = {fk.PreCardUse},
+  can_refresh = function(self, event, target, player, data)
     return player == target and data.card.trueName == "slash" and data.card.color == Card.Red and
       player:usedSkillTimes("zhaxiang", Player.HistoryPhase) > 0
   end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
+  on_refresh = function(self, event, target, player, data)
     data.disresponsiveList = table.map(player.room.alive_players, Util.IdMapper)
   end,
 }
