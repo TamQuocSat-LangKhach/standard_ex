@@ -176,20 +176,20 @@ local ex__qingjian = fk.CreateTriggerSkill{
   on_cost = function(self, event, target, player, data)
     local room = player.room
     local tos, cards = room:askForChooseCardsAndPlayers(player, 1, 999,
-    table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, ".|.|.|hand",
-    "#ex__qingjian-invoke", self.name, true, false)
+    table.map(room:getOtherPlayers(player, false), Util.IdMapper), 1, 1, ".",
+    "#ex__qingjian-invoke", self.name, true, true)
     if #tos > 0 and #cards > 0 then
-      self.cost_data = {tos, cards}
+      self.cost_data = {tos = tos, cards = cards}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local types = {}
-    for _, id in ipairs(self.cost_data[2]) do
+    for _, id in ipairs(self.cost_data.cards) do
       table.insertIfNeed(types, Fk:getCardById(id).type)
     end
-    room:moveCardTo(self.cost_data[2], Player.Hand, room:getPlayerById(self.cost_data[1][1]), fk.ReasonGive,
+    room:moveCardTo(self.cost_data.cards, Player.Hand, room:getPlayerById(self.cost_data.tos[1]), fk.ReasonGive,
     self.name, nil, true, player.id)
     if not room.current.dead then
       room:addPlayerMark(room.current, MarkEnum.AddMaxCardsInTurn, #types)
