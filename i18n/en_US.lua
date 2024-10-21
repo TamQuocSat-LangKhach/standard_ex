@@ -185,7 +185,7 @@ return {
   ["ex__chuli"] = "Remove Ulcer",
   [":ex__chuli"] = "1x Action Phase, if you have hand cards, you can choose any # of other heroes from different kingdoms; then, you discard 1 of your cards and 1 of each of them. Then, each hero that discarded ♠ draws 1.",
 
-  ["ex__lvbu"] = "Lv Bu",
+  ["ex__lvbu"] = "Lü Bu",
   ["liyu"] = "Controlled for Profit",
   [":liyu"] = "After you DMG another hero using Sha, you can take a card in his area → if it’s: ▪ not equipment, he draws 1; ▪ equipment, view it as you using Duel on another hero chosen by him.",
 

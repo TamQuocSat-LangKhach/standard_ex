@@ -641,7 +641,7 @@ local ex__yijue = fk.CreateActiveSkill{
 
     showCard = Fk:getCardById(showCard)
     if showCard.color == Card.Black then
-      local mark = U.getMark(to, "@@yijue-turn")
+      local mark = to:getTableMark("@@yijue-turn")
       table.insert(mark, from.id)
       room:setPlayerMark(to, "@@yijue-turn", mark)
       room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
