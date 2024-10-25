@@ -1748,7 +1748,7 @@ local ex__qianxun = fk.CreateTriggerSkill{
     U.isOnlyTarget(player, data, event) and not player:isKongcheng()
   end,
   on_use = function(self, event, target, player, data)
-    player:addToPile("ex__qianxun", player:getCardIds("h"), false, self.name)
+    player:addToPile("$ex__qianxun", player:getCardIds("h"), false, self.name)
   end,
 }
 local ex__qianxun_delay = fk.CreateTriggerSkill{
@@ -1756,11 +1756,11 @@ local ex__qianxun_delay = fk.CreateTriggerSkill{
   mute = true,
   events = {fk.TurnEnd},
   can_trigger = function(self, event, target, player, data)
-    return #player:getPile("ex__qianxun") > 0
+    return #player:getPile("$ex__qianxun") > 0
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    player.room:obtainCard(player.id, player:getPile("ex__qianxun"), false)
+    player.room:obtainCard(player.id, player:getPile("$ex__qianxun"), false)
   end,
 }
 local ex__lianying = fk.CreateTriggerSkill{
@@ -1822,7 +1822,7 @@ Fk:loadTranslationTable{
   ["ex__lianying"] = "连营",
   [":ex__lianying"] = "当你失去手牌后，若你没有手牌，则你可以令至多X名角色各摸一张牌（X为你此次失去的手牌数）。",
   ["#ex__lianying-invoke"] = "连营：你可令至多%arg名角色摸一张牌",
-
+  ["$ex__qianxun"] = "谦逊",
   ["#ex__qianxun_delay"] = "谦逊",
 
   ["$ex__qianxun1"] = "满招损，谦受益。",
@@ -2313,22 +2313,22 @@ local role__wooden_ox_trigger = fk.CreateTriggerSkill{
           local from = move.from and room:getPlayerById(move.from)
           local to = move.to and room:getPlayerById(move.to)
           -- 处理木牛移出装备区
-          if info.fromArea == Card.PlayerEquip and from and #from:getPile("role_carriage&") > 0 then
-            local ids = from:getPile("role_carriage&")
+          if info.fromArea == Card.PlayerEquip and from and #from:getPile("$role_carriage&") > 0 then
+            local ids = from:getPile("$role_carriage&")
             if move.toArea == Card.PlayerEquip and to and not to.dead then
               -- 若木马进入装备区，“辎”移动到他的私人牌堆
               table.insert(moveInfos, {
                 -- 新建move需要写ids不需要写moveInfo，插入move需要写moveInfo不需要写ids
                 ids = ids,
                 moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "role_carriage&"}
+                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
                 end),
                 from = move.from,
                 toArea = Card.PlayerSpecial,
                 to = move.to,
                 moveReason = fk.ReasonPut,
                 skillName = self.name,
-                specialName = "role_carriage&",
+                specialName = "$role_carriage&",
                 moveVisible = false,
                 visiblePlayers = {from.id, to.id},
               })
@@ -2337,7 +2337,7 @@ local role__wooden_ox_trigger = fk.CreateTriggerSkill{
               table.insert(moveInfos, {
                 ids = ids,
                 moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "role_carriage&"}
+                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
                 end),
                 from = move.from,
                 toArea = Card.Processing,
@@ -2354,7 +2354,7 @@ local role__wooden_ox_trigger = fk.CreateTriggerSkill{
               table.insert(moveInfos, {
                 ids = ids,
                 moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "role_carriage&"}
+                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
                 end),
                 from = move.from,
                 toArea = Card.DiscardPile,
@@ -2383,7 +2383,7 @@ local role__wooden_ox_trigger = fk.CreateTriggerSkill{
                   to = move.to,
                   moveReason = fk.ReasonPut,
                   skillName = self.name,
-                  specialName = "role_carriage&",
+                  specialName = "$role_carriage&",
                   moveVisible = false,
                   visiblePlayers = {mark.from, to.id},
                 })
@@ -2424,7 +2424,7 @@ local role__wooden_ox_skill = fk.CreateActiveSkill{
   attached_equip = "role__wooden_ox",
   prompt = "#role__wooden_ox-prompt",
   can_use = function(self, player, card)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() and #player:getPile("role_carriage&") < 5
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() and #player:getPile("$role_carriage&") < 5
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -2433,7 +2433,7 @@ local role__wooden_ox_skill = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    player:addToPile("role_carriage&", effect.cards[1], false, self.name)
+    player:addToPile("$role_carriage&", effect.cards[1], false, self.name)
     if player.dead then return end
     local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "role__wooden_ox" end)
@@ -2465,7 +2465,7 @@ Fk:loadTranslationTable{
   [":role__wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”至多有5张），然后你可将装备区里的【木牛流马】置入一名"..
   "其他角色的装备区。你可如手牌般使用或打出“辎”。",
   ["#role__wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
-  ["role_carriage&"] = "辎",
+  ["$role_carriage&"] = "辎",
   ["new_role_cards"] = "新身份模式卡牌",
   ["#role__wooden_ox_trigger"] = "木牛流马",
   ["#role__wooden_ox-prompt"] = "你可以将一张手牌扣置于【木牛流马】下",
