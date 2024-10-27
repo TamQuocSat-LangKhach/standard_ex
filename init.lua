@@ -675,7 +675,7 @@ local yijue_trigger = fk.CreateTriggerSkill{
   events = {fk.DamageCaused},
   can_trigger = function(self, event, target, player, data)
     return target == player and not player.dead and data.card and data.card.trueName == "slash" and data.card.suit == Card.Heart and
-    table.contains(U.getMark(data.to, "@@yijue-turn"), player.id) and not data.chain
+    table.contains(data.to:getTableMark("@@yijue-turn"), player.id) and not data.chain
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
