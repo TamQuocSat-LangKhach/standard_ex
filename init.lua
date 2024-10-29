@@ -317,7 +317,7 @@ local ex__luoyi_delay = fk.CreateTriggerSkill{
   can_trigger = function(self, event, target, player, data)
     return target == player and player:getMark("@@ex__luoyi") > 0 and
       data.card and (data.card.trueName == "slash" or data.card.name == "duel") and
-      U.damageByCardEffect(player.room, false)
+      player.room.logic:damageByCardEffect()
   end,
   on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
@@ -365,7 +365,7 @@ local ex__yiji = fk.CreateTriggerSkill{
     local room = player.room
     player:drawCards(2, self.name)
     if player.dead or player:isKongcheng() then return end
-    U.askForDistribution(player, player:getCardIds("h"), room:getOtherPlayers(player, false), self.name, 0, 2)
+    room:askForYiji(player, player:getCardIds("h"), room:getOtherPlayers(player, false), self.name, 0, 2)
   end
 }
 ex__guojia:addSkill(ex__yiji)
@@ -721,7 +721,7 @@ local ex__paoxiao = fk.CreateTriggerSkill{
     if event == fk.CardEffectCancelledOut then
       return player == target and data.card.trueName == "slash" and player:hasSkill(self)
     elseif event == fk.DamageCaused then
-      return data.card and data.card.trueName == "slash" and U.damageByCardEffect(player.room) and
+      return data.card and data.card.trueName == "slash" and player.room.logic:damageByCardEffect() and
       player:getMark("@paoxiao-turn") > 0 and player:hasSkill(self)
     end
   end,
@@ -1267,7 +1267,7 @@ local jijie = fk.CreateActiveSkill{
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
     local cids = room:getNCards(1, "bottom")
-    U.askForDistribution(player, cids, room.alive_players, self.name, 1, 1,
+    room:askForYiji(player, cids, room.alive_players, self.name, 1, 1,
     "#jijie-give:::" .. Fk:getCardById(cids[1]):toLogString(), cids, false)
   end,
 }
