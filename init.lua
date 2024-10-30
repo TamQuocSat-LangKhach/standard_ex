@@ -75,16 +75,16 @@ local ex__guicai = fk.CreateTriggerSkill{
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
-    local card = room:askForResponse(player, self.name, ".|.|.|hand,equip|.|",
-      "#ex__guicai-ask::" .. target.id .. ":" .. data.reason, true)
-    if card ~= nil then
+    local card = room:askForCard(player, 1, 1, true, self.name, true, ".|.|.|hand,equip",
+    "#ex__guicai-ask::" .. target.id .. ":" .. data.reason)
+    if #card > 0 then
       room:doIndicate(player.id, {target.id})
-      self.cost_data = card
+      self.cost_data = card[1]
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:retrial(self.cost_data, player, data, self.name)
+    player.room:retrial(Fk:getCardById(self.cost_data), player, data, self.name)
   end,
 }
 simayi:addSkill(ex__fankui)
@@ -225,7 +225,7 @@ local ex__tuxi = fk.CreateTriggerSkill{
   events = {fk.DrawNCards},
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and data.n > 0 and
-      table.find(player.room:getOtherPlayers(player), function(p) return not p:isKongcheng() end)
+      table.find(player.room:getOtherPlayers(player, false), function(p) return not p:isKongcheng() end)
   end,
   on_cost = function(self, event, target, player, data)
     local room = player.room
@@ -233,14 +233,14 @@ local ex__tuxi = fk.CreateTriggerSkill{
       return not p:isKongcheng() end), Util.IdMapper)
     local tos = room:askForChoosePlayers(player, targets, 1, data.n, "#ex__tuxi-choose:::"..data.n, self.name, true)
     if #tos > 0 then
-      self.cost_data = tos
+       room:sortPlayersByAction(tos)
+      self.cost_data = {tos = tos}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local tos = table.simpleClone(self.cost_data)
-    room:sortPlayersByAction(tos)
+    local tos = table.simpleClone(self.cost_data.tos)
     for _, id in ipairs(tos) do
       local to = room:getPlayerById(id)
       if not (to.dead or to:isKongcheng()) then
