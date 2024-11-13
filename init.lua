@@ -1422,12 +1422,12 @@ local fenwei = fk.CreateTriggerSkill{
   frequency = Skill.Limited,
   events = {fk.TargetSpecified},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.card.type == Card.TypeTrick and #AimGroup:getAllTargets(data.tos) > 1 and
+    return player:hasSkill(self) and data.card.type == Card.TypeTrick and #AimGroup:getAllTargets(data.tos) > 1 and data.firstTarget and
       player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
   on_cost = function(self, event, target, player, data)
     local tos = player.room:askForChoosePlayers(player, AimGroup:getAllTargets(data.tos),
-      1, 10, "#fenwei-choose:::"..data.card:toLogString(), self.name, true)
+      1, #AimGroup:getAllTargets(data.tos), "#fenwei-choose:::"..data.card:toLogString(), self.name, true)
     if #tos > 0 then
       self.cost_data = tos
       return true
@@ -1794,15 +1794,14 @@ local ex__lianying = fk.CreateTriggerSkill{
     local players = room:askForChoosePlayers(player, table.map(room.alive_players, Util.IdMapper), 1, n,
       "#ex__lianying-invoke:::"..n, self.name)
     if #players > 0 then
-      self.cost_data = players
+      room:sortPlayersByAction(players)
+      self.cost_data = {tos = players}
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local targets = self.cost_data
-    room:sortPlayersByAction(targets)
-    for _, pid in ipairs(targets) do
+    for _, pid in ipairs(self.cost_data.tos) do
       local p = room:getPlayerById(pid)
       if not p.dead then p:drawCards(1, self.name) end
     end
