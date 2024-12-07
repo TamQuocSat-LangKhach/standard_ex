@@ -461,9 +461,11 @@ local xunxun = fk.CreateTriggerSkill{
     local ret = room:askForArrangeCards(player, self.name, {room:getNCards(4), "Bottom", "Top"}, "#xunxun", true, 0, {4, 2}, {0, 2})
     local top, bottom = ret[2], ret[1]
     for i = #top, 1, -1 do
+      table.removeOne(room.draw_pile, top[i])
       table.insert(room.draw_pile, 1, top[i])
     end
     for i = 1, #bottom, 1 do
+      table.removeOne(room.draw_pile, bottom[i])
       table.insert(room.draw_pile, bottom[i])
     end
     room:sendLog{
