@@ -723,7 +723,7 @@ local ex__paoxiao = fk.CreateTriggerSkill{
     if event == fk.CardEffectCancelledOut then
       return player == target and data.card.trueName == "slash" and player:hasSkill(self)
     elseif event == fk.DamageCaused then
-      return data.card and data.card.trueName == "slash" and player.room.logic:damageByCardEffect() and
+      return player == target and data.card and data.card.trueName == "slash" and player.room.logic:damageByCardEffect() and
       player:getMark("@paoxiao-turn") > 0 and player:hasSkill(self)
     end
   end,
