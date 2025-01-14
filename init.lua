@@ -597,6 +597,7 @@ local ex__wusheng = fk.CreateViewAsSkill{
   anim_type = "offensive",
   pattern = "slash",
   prompt = "#ex__wusheng",
+  handly_pile = true,
   card_filter = function(self, to_select, selected)
     if #selected == 1 then return false end
     return Fk:getCardById(to_select).color == Card.Red
@@ -844,6 +845,7 @@ Fk:loadTranslationTable{
 local ex__longdan = fk.CreateViewAsSkill{
   name = "ex__longdan",
   pattern = "slash,jink,peach,analeptic",
+  handly_pile = true,
   card_filter = function(self, to_select, selected)
     if #selected ~= 0 then return false end
     local _c = Fk:getCardById(to_select)
@@ -2445,6 +2447,26 @@ local role__wooden_ox_skill = fk.CreateActiveSkill{
     end
   end,
 }
+local role__wooden_ox_prohibit = fk.CreateProhibitSkill{
+  name = "#role__wooden_ox_prohibit",
+  prohibit_use = function(self, player, card)
+    if not Fk.skills["role__wooden_ox_skill"]:isEffectable(player) then
+      local subcards = card:isVirtual() and card.subcards or {card.id}
+      return #subcards > 0 and table.find(subcards, function(id)
+        return table.contains(player:getPile("$role_carriage&"), id)
+      end)
+    end
+  end,
+  prohibit_response = function(self, player, card)
+    if not Fk.skills["role__wooden_ox_skill"]:isEffectable(player) then
+      local subcards = card:isVirtual() and card.subcards or {card.id}
+      return #subcards > 0 and table.find(subcards, function(id)
+        return table.contains(player:getPile("$role_carriage&"), id)
+      end)
+    end
+  end,
+}
+role__wooden_ox_skill:addRelatedSkill(role__wooden_ox_prohibit)
 Fk:addSkill(role__wooden_ox_skill)
 local role__wooden_ox = fk.CreateTreasure{
   name = "role__wooden_ox",
@@ -2458,8 +2480,8 @@ Fk:loadTranslationTable{
   [":role__wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
   "1. 出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。<br/>" ..
   "2. 你可如手牌般使用或打出“辎”。<br/>" ..
-  "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，当你失去此牌后，你将所有“辎”置入弃牌堆。"..
-  "<br><b>目前“辎”无法被转化使用</b>",
+  "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，当你失去此牌后，你将所有“辎”置入弃牌堆。",
+  ["wooden_ox"] = "木牛流马",
   ["role__wooden_ox_skill"] = "木牛",
   [":role__wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”至多有5张），然后你可将装备区里的【木牛流马】置入一名"..
   "其他角色的装备区。你可如手牌般使用或打出“辎”。",
