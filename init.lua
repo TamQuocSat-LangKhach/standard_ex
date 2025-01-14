@@ -2297,135 +2297,12 @@ Fk:loadTranslationTable{
 
 local extension_card = Package("standard_ex_cards", Package.CardPack)
 extension_card.extensionName = "standard_ex"
-local role__wooden_ox_trigger = fk.CreateTriggerSkill{
-  name = "#role__wooden_ox_trigger",
-  global = true,
-  mute = true,
-  refresh_events = {fk.AfterCardsMove},
-  can_refresh = function (self, event, target, player, data)
-    return player == player.room.players[1]
-  end,
-  on_refresh = function(self, event, target, player, data)
-    local room = player.room
-    local moveInfos = {}
-    for _, move in ipairs(data) do
-      for _, info in ipairs(move.moveInfo) do
-        if Fk:getCardById(info.cardId).name == "role__wooden_ox" then
-          local from = move.from and room:getPlayerById(move.from)
-          local to = move.to and room:getPlayerById(move.to)
-          -- 处理木牛移出装备区
-          if info.fromArea == Card.PlayerEquip and from and #from:getPile("$role_carriage&") > 0 then
-            local ids = from:getPile("$role_carriage&")
-            if move.toArea == Card.PlayerEquip and to and not to.dead then
-              -- 若木马进入装备区，“辎”移动到他的私人牌堆
-              table.insert(moveInfos, {
-                -- 新建move需要写ids不需要写moveInfo，插入move需要写moveInfo不需要写ids
-                ids = ids,
-                moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
-                end),
-                from = move.from,
-                toArea = Card.PlayerSpecial,
-                to = move.to,
-                moveReason = fk.ReasonPut,
-                skillName = self.name,
-                specialName = "$role_carriage&",
-                moveVisible = false,
-                visiblePlayers = {from.id, to.id},
-              })
-            elseif move.toArea == Card.Processing then
-              -- 如果木马进入处理区，先把“辎”移动到处理区
-              table.insert(moveInfos, {
-                ids = ids,
-                moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
-                end),
-                from = move.from,
-                toArea = Card.Processing,
-                moveReason = fk.ReasonPut,
-                skillName = self.name,
-                moveVisible = false,
-                visiblePlayers = {from.id},
-              })
-              room:setCardMark(Fk:getCardById(info.cardId), "role__wooden_ox_processing", {
-                from = from.id, ids = ids
-              })
-            else
-              -- 其他情况下，“辎”牌置入弃牌堆
-              table.insert(moveInfos, {
-                ids = ids,
-                moveInfo = table.map(ids, function(id)
-                  return {cardId = id,fromArea = Card.PlayerSpecial,fromSpecialName = "$role_carriage&"}
-                end),
-                from = move.from,
-                toArea = Card.DiscardPile,
-                moveReason = fk.ReasonPutIntoDiscardPile,
-                skillName = self.name,
-                moveVisible = true,
-              })
-            end
-          end
-          -- 处理木牛移出处理区
-          local mark = Fk:getCardById(info.cardId):getMark("role__wooden_ox_processing")
-          if info.fromArea == Card.Processing and type(mark) == "table" then
-            local ids = table.filter(mark.ids, function (id)
-              return room:getCardArea(id) == Card.Processing
-            end)
-            room:setCardMark(Fk:getCardById(info.cardId), "role__wooden_ox_processing", 0)
-            if #ids > 0 then
-              if move.toArea == Card.PlayerEquip and to and not to.dead then
-                -- 若木马进入装备区，“辎”移动到他的私人牌堆
-                table.insert(moveInfos, {
-                  ids = ids,
-                  moveInfo = table.map(ids, function(id)
-                    return {cardId = id, fromArea = Card.Processing}
-                  end),
-                  toArea = Card.PlayerSpecial,
-                  to = move.to,
-                  moveReason = fk.ReasonPut,
-                  skillName = self.name,
-                  specialName = "$role_carriage&",
-                  moveVisible = false,
-                  visiblePlayers = {mark.from, to.id},
-                })
-              else
-                -- 其他情况下，“辎”牌置入弃牌堆
-                table.insert(moveInfos, {
-                  ids = ids,
-                  moveInfo = table.map(ids, function(id)
-                    return {cardId = id, fromArea = Card.Processing}
-                  end),
-                  toArea = Card.DiscardPile,
-                  moveReason = fk.ReasonPutIntoDiscardPile,
-                  skillName = self.name,
-                  moveVisible = true,
-                })
-              end
-            end
-          end
-        end
-      end
-    end
-    if #moveInfos > 0 then
-      local e = room.logic:getCurrentEvent():findParent(GameEvent.MoveCards, true)
-      if e then
-        -- 不要在refresh里执行移动操作，改为延时进行
-        -- addExitFunc会被shutdown中断，addCleaner不会
-        e:addExitFunc(function()
-          room:moveCards(table.unpack(moveInfos))
-        end)
-      end
-    end
-  end,
-}
-Fk:addSkill(role__wooden_ox_trigger)
-
 local role__wooden_ox_skill = fk.CreateActiveSkill{
   name = "role__wooden_ox_skill",
   attached_equip = "role__wooden_ox",
   prompt = "#role__wooden_ox-prompt",
   can_use = function(self, player, card)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and not player:isKongcheng() and #player:getPile("$role_carriage&") < 5
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and #player:getPile("$role_carriage") < 5
   end,
   card_num = 1,
   card_filter = function(self, to_select, selected)
@@ -2434,45 +2311,121 @@ local role__wooden_ox_skill = fk.CreateActiveSkill{
   target_num = 0,
   on_use = function(self, room, effect)
     local player = room:getPlayerById(effect.from)
-    player:addToPile("$role_carriage&", effect.cards[1], false, self.name)
+    player:addToPile("$role_carriage", effect.cards[1], false, self.name)
     if player.dead then return end
-    local targets = table.filter(room:getOtherPlayers(player), function(p) return p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "role__wooden_ox" end)
-    if ox and #targets > 0 then
-      local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#role__wooden_ox-move", self.name, true)
-      if #tos > 0 then
-        local to = room:getPlayerById(tos[1])
-        room:moveCardTo(ox, Card.PlayerEquip, to, fk.ReasonPut, self.name, nil, true, player.id, nil)
+    if ox then
+      local targets = table.filter(room.alive_players, function(p)
+        return p ~= player and p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
+      if #targets > 0 then
+        local tos = room:askForChoosePlayers(player, table.map(targets, Util.IdMapper), 1, 1, "#role__wooden_ox-move", self.name, true)
+        if #tos > 0 then
+          room:moveCardTo(ox, Card.PlayerEquip, tos[1], fk.ReasonPut, self.name, nil, true, player.id, nil)
+        end
       end
     end
   end,
 }
-local role__wooden_ox_prohibit = fk.CreateProhibitSkill{
-  name = "#role__wooden_ox_prohibit",
-  prohibit_use = function(self, player, card)
-    if not Fk.skills["role__wooden_ox_skill"]:isEffectable(player) then
-      local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.find(subcards, function(id)
-        return table.contains(player:getPile("$role_carriage&"), id)
-      end)
+local role__wooden_ox_trigger = fk.CreateTriggerSkill{
+  name = "#role__wooden_ox_trigger",
+  mute = true,
+  priority = 5,
+  events = {fk.AfterCardsMove},
+  can_trigger = function(self, event, target, player, data)
+    if player:getPile("$role_carriage") == 0 then return false end
+    for _, move in ipairs(data) do
+      for _, info in ipairs(move.moveInfo) do
+        if Fk:getCardById(info.cardId).name == "role__wooden_ox" then
+          --多个木马同时移动的情况取其中之一即可，不再做冗余判断
+          if info.fromArea == Card.Processing then
+            local room = player.room
+            --注意到一次交换事件的过程中的两次移动事件都是在一个parent事件里进行的，因此查询到parent事件为止即可
+            local move_event = room.logic:getCurrentEvent():findParent(GameEvent.MoveCards, true)
+            local parent_event = move_event.parent
+            local move_events = room.logic:getEventsByRule(GameEvent.MoveCards, 1, function (e)
+              if e.id >= move_event.id or e.parent ~= parent_event then return false end
+              for _, last_move in ipairs(e.data) do
+                if last_move.moveReason == fk.ReasonExchange and last_move.toArea == Card.Processing then
+                  return true
+                end
+              end
+            end, parent_event.id)
+            if #move_events > 0 then
+              for _, last_move in ipairs(move_events[1].data) do
+                if last_move.moveReason == fk.ReasonExchange then
+                  for _, last_info in ipairs(last_move.moveInfo) do
+                    if Fk:getCardById(last_info.cardId).name == "role__wooden_ox" then
+                      if last_move.from == player.id and last_info.fromArea == Card.PlayerEquip then
+                        if move.toArea == Card.PlayerEquip then
+                          if move.to ~= player.id then
+                            self.cost_data = move.to
+                            return true
+                          end
+                        else
+                          self.cost_data = nil
+                          return true
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          elseif move.moveReason == fk.ReasonExchange then
+            if move.from == player.id and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
+              --适用于被修改了移动区域的情况，如销毁，虽然说原则上移至处理区是不应销毁的
+              self.cost_data = nil
+              return true
+            end
+          elseif move.from == player.id and info.fromArea == Card.PlayerEquip then
+            if move.toArea == Card.PlayerEquip then
+              if move.to ~= player.id then
+                self.cost_data = move.to
+                return true
+              end
+            else
+              self.cost_data = nil
+              return true
+            end
+          end
+        end
+      end
     end
   end,
-  prohibit_response = function(self, player, card)
-    if not Fk.skills["role__wooden_ox_skill"]:isEffectable(player) then
-      local subcards = card:isVirtual() and card.subcards or {card.id}
-      return #subcards > 0 and table.find(subcards, function(id)
-        return table.contains(player:getPile("$role_carriage&"), id)
-      end)
+  on_cost = Util.TrueFunc,
+  on_use = function(self, event, _, player, data)
+    local room = player.room
+    local cards = player:getPile("$role_carriage")
+    local to = self.cost_data
+    if to then
+      room:getPlayerById(to):addToPile("$role_carriage", cards, false, "role__wooden_ox_skill", nil, {player.id, to})
+    else
+      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, "role__wooden_ox_skill", nil, true)
     end
   end,
 }
-role__wooden_ox_skill:addRelatedSkill(role__wooden_ox_prohibit)
+local role__wooden_ox_filter = fk.CreateFilterSkill{
+  name = "#role__wooden_ox_filter",
+
+  handly_cards = function (self, player)
+    if player:hasSkill(role__wooden_ox_skill) then
+      return player:getPile("$role_carriage")
+    end
+  end,
+}
+role__wooden_ox_skill:addRelatedSkill(role__wooden_ox_trigger)
+role__wooden_ox_skill:addRelatedSkill(role__wooden_ox_filter)
 Fk:addSkill(role__wooden_ox_skill)
 local role__wooden_ox = fk.CreateTreasure{
   name = "role__wooden_ox",
   suit = Card.Diamond,
   number = 5,
   equip_skill = role__wooden_ox_skill,
+
+  on_uninstall = function(self, room, player)
+    Treasure.onUninstall(self, room, player)
+    player:setSkillUseHistory(self.equip_skill.name, 0, Player.HistoryPhase)
+  end,
 }
 extension_card:addCard(role__wooden_ox)
 Fk:loadTranslationTable{
@@ -2486,7 +2439,8 @@ Fk:loadTranslationTable{
   [":role__wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”至多有5张），然后你可将装备区里的【木牛流马】置入一名"..
   "其他角色的装备区。你可如手牌般使用或打出“辎”。",
   ["#role__wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
-  ["$role_carriage&"] = "辎",
+  ["$role_carriage"] = "辎",
+  ["#role__wooden_ox_filter"] = "辎",
   ["new_role_cards"] = "新身份模式卡牌",
   ["#role__wooden_ox_trigger"] = "木牛流马",
   ["#role__wooden_ox-prompt"] = "你可以将一张手牌扣置于【木牛流马】下",
