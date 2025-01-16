@@ -2328,6 +2328,7 @@ local role__wooden_ox_skill = fk.CreateActiveSkill{
 }
 local role__wooden_ox_trigger = fk.CreateTriggerSkill{
   name = "#role__wooden_ox_trigger",
+  attached_equip = "role__wooden_ox",
   mute = true,
   priority = 5,
   events = {fk.AfterCardsMove},
@@ -2431,13 +2432,12 @@ extension_card:addCard(role__wooden_ox)
 Fk:loadTranslationTable{
   ["role__wooden_ox"] = "木牛流马",
   [":role__wooden_ox"] = "装备牌·宝物<br/><b>宝物技能</b>：<br/>" ..
-  "1. 出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”数至多为5），然后你可将装备区里的【木牛流马】置入一名其他角色的装备区。<br/>" ..
-  "2. 你可如手牌般使用或打出“辎”。<br/>" ..
-  "3. 当你并非因交换而失去装备区里的【木牛流马】前，若目标区域不为其他角色的装备区，当你失去此牌后，你将所有“辎”置入弃牌堆。",
+  "出牌阶段限一次，你可将一张手牌扣置于装备区里的【木牛流马】下（称为“辎”，“辎”至多有5张），然后你可以将【木牛流马】置入一名"..
+  "其他角色的装备区。你可以如手牌般使用或打出“辎”。",
   ["wooden_ox"] = "木牛流马",
   ["role__wooden_ox_skill"] = "木牛",
-  [":role__wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌置入仓廪（称为“辎”，“辎”至多有5张），然后你可将装备区里的【木牛流马】置入一名"..
-  "其他角色的装备区。你可如手牌般使用或打出“辎”。",
+  [":role__wooden_ox_skill"] = "出牌阶段限一次，你可将一张手牌扣置于装备区里的【木牛流马】下（称为“辎”，“辎”至多有5张），"..
+  "然后你可以将【木牛流马】置入一名其他角色的装备区。你可以如手牌般使用或打出“辎”。",
   ["#role__wooden_ox-move"] = "你可以将【木牛流马】移动至一名其他角色的装备区",
   ["$role_carriage"] = "辎",
   ["#role__wooden_ox_filter"] = "辎",
