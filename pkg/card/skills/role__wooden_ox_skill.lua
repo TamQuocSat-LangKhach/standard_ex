@@ -1,35 +1,43 @@
 local skill = fk.CreateSkill {
-  name = "role__wooden_ox_skill",
+  name = "role__wooden_ox_skill&",
   attached_equip = "role__wooden_ox",
 }
 
-skill:addEffect('active', {
-  prompt = "#role__wooden_ox-prompt",
+skill:addEffect("active", {
+  prompt = "#role__wooden_ox",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and #player:getPile("$role_carriage") < 5
+    return player:usedSkillTimes(skill.name, Player.HistoryPhase) == 0 and #player:getPile("$role_carriage") < 5
   end,
   card_num = 1,
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and table.contains(Self.player_cards[Player.Hand], to_select)
+  card_filter = function(self, player, to_select, selected)
+    return #selected == 0 and table.contains(player:getCardIds("h"), to_select)
   end,
   target_num = 0,
   on_use = function(self, room, effect)
     local player = effect.from
-    player:addToPile("$role_carriage", effect.cards[1], false, self.name)
+    player:addToPile("$role_carriage", effect.cards[1], false, skill.name)
     if player.dead then return end
     local ox = table.find(player:getCardIds("e"), function (id) return Fk:getCardById(id).name == "role__wooden_ox" end)
     if ox then
       local targets = table.filter(room.alive_players, function(p)
         return p ~= player and p:hasEmptyEquipSlot(Card.SubtypeTreasure) end)
       if #targets > 0 then
-        local tos = room:askToChoosePlayers(player, { targets = targets, min_num = 1, max_num = 1, prompt = "#role__wooden_ox-move", skill_name = self.name, cancelable = true })
-        if #tos > 0 then
-          room:moveCardTo(ox, Card.PlayerEquip, tos[1], fk.ReasonPut, self.name, nil, true, player.id, nil)
+        local to = room:askToChoosePlayers(player, {
+          targets = targets,
+          min_num = 1,
+          max_num = 1,
+          prompt = "#role__wooden_ox-move",
+          skill_name = skill.name,
+          cancelable = true,
+        })
+        if #to > 0 then
+          room:moveCardTo(ox, Card.PlayerEquip, to[1], fk.ReasonPut, skill.name, nil, true, player)
         end
       end
     end
   end,
-}):addEffect(fk.AfterCardsMove, {
+})
+skill:addEffect(fk.AfterCardsMove, {
   can_trigger = function(self, event, target, player, data)
     if player:getPile("$role_carriage") == 0 then return false end
     for _, move in ipairs(data) do
@@ -57,12 +65,12 @@ skill:addEffect('active', {
                     if Fk:getCardById(last_info.cardId).name == "role__wooden_ox" then
                       if last_move.from == player.id and last_info.fromArea == Card.PlayerEquip then
                         if move.toArea == Card.PlayerEquip then
-                          if move.to ~= player.id then
-                            self.cost_data = move.to
+                          if move.to ~= player then
+                            event:setCostData(self, {extra_data = move.to})
                             return true
                           end
                         else
-                          self.cost_data = nil
+                          event:setCostData(self, nil)
                           return true
                         end
                       end
@@ -72,19 +80,19 @@ skill:addEffect('active', {
               end
             end
           elseif move.moveReason == fk.ReasonExchange then
-            if move.from == player.id and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
+            if move.from == player and info.fromArea == Card.PlayerEquip and move.toArea ~= Card.Processing then
               --适用于被修改了移动区域的情况，如销毁，虽然说原则上移至处理区是不应销毁的
-              self.cost_data = nil
+              event:setCostData(self, nil)
               return true
             end
-          elseif move.from == player.id and info.fromArea == Card.PlayerEquip then
+          elseif move.from == player and info.fromArea == Card.PlayerEquip then
             if move.toArea == Card.PlayerEquip then
-              if move.to ~= player.id then
-                self.cost_data = move.to
+              if move.to ~= player then
+                event:setCostData(self, {extra_data = move.to})
                 return true
               end
             else
-              self.cost_data = nil
+              event:setCostData(self, nil)
               return true
             end
           end
@@ -93,19 +101,21 @@ skill:addEffect('active', {
     end
   end,
   on_cost = Util.TrueFunc,
-  on_use = function(self, event, _, player, data)
+  on_use = function(self, event, target, player, data)
     local room = player.room
     local cards = player:getPile("$role_carriage")
-    local to = self.cost_data
+    local to = event:getCostData(self).extra_data
     if to then
-      room:getPlayerById(to):addToPile("$role_carriage", cards, false, "role__wooden_ox_skill", nil, {player.id, to})
+      to:addToPile("$role_carriage", cards, false, skill.name)
     else
-      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, "role__wooden_ox_skill", nil, true)
+      room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skill.name, nil, true)
     end
   end
-}):addEffect('filter', {
+})
+
+skill:addEffect("filter", {
   handly_cards = function (self, player)
-    if player:hasSkill("role__wooden_ox_skill") then
+    if player:hasSkill(skill.name) then
       return player:getPile("$role_carriage")
     end
   end,

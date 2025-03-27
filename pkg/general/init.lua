@@ -6,7 +6,7 @@ Fk:loadTranslationTable{
   ["std"] = "标",
 }
 
-extension:loadSkillSkels(require("packages.standard_ex.pkg.general.skills"))
+extension:loadSkillSkelsByPath("./packages/standard_ex/pkg/general/skills")
 
 General:new(extension, "ex__caocao", "wei", 4):addSkills{ "ex__jianxiong", "hujia" }
 Fk:loadTranslationTable{

@@ -14,23 +14,20 @@ local skill = fk.CreateSkill{
 
 skill:addEffect(fk.Damaged, {
   anim_type = "masochism",
-  events = {fk.Damaged},
-  on_trigger = function(self, event, target, player, data)
-    self.cancel_cost = false
-    for i = 1, data.damage do
-      if i > 1 and (self.cancel_cost or not player:hasSkill(skill.name)) then return false end
-      self:doCost(event, target, player, data)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    if player.room:askToSkillInvoke(target, { skill_name = skill.name }) then return true end
-    self.cancel_cost = true
+  trigger_times = function(self, event, target, player, data)
+    return data.damage
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     player:drawCards(2, skill.name)
-    if player.dead or player:isKongcheng() then return end
-    room:askToYiji(player, { cards = player:getCardIds("h"), targets = room:getOtherPlayers(player, false), skill_name = skill.name, min_num = 0, max_num = 2 })
+    if player.dead or player:isKongcheng() or #room:getOtherPlayers(player, false) == 0 then return end
+    room:askToYiji(player, {
+      cards = player:getCardIds("h"),
+      targets = room:getOtherPlayers(player, false),
+      skill_name = skill.name,
+      min_num = 0,
+      max_num = 2,
+    })
   end
 })
 
