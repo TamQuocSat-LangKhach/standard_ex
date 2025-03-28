@@ -22,59 +22,70 @@ skill:addEffect('active', {
   target_num = 1,
   prompt = "#ex__yijue",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+    return player:usedEffectTimes(skill.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select))
+  card_filter = function(self, player, to_select, selected)
+    return #selected == 0 and not player:prohibitDiscard(to_select)
   end,
-  target_filter = function(self, to_select)
-    return to_select ~= Self.id and not Fk:currentRoom():getPlayerById(to_select):isKongcheng()
+  target_filter = function(self, player, to_select)
+    return to_select ~= player and not to_select:isKongcheng()
   end,
   on_use = function(self, room, effect)
-    local from = effect.from
-    room:throwCard(effect.cards, self.name, from, from)
-    local to = room:getPlayerById(effect.tos[1])
+    local player = effect.from
+    room:throwCard(effect.cards, skill.name, player, player)
+    local to = effect.tos[1]
 
     if to:isKongcheng() then return end
 
-    local showCard = room:askToCards(to, { min_num = 1, max_num = 1, include_equip = false, skill_name = self.name, cancelable = false, pattern = "#yijue-show::"..from.id })[1]
+    local showCard = room:askToCards(to, {
+      min_num = 1,
+      max_num = 1,
+      include_equip = false,
+      skill_name = skill.name,
+      cancelable = false,
+      pattern = "#yijue-show::"..player.id,
+    })[1]
     to:showCards(showCard)
 
     showCard = Fk:getCardById(showCard)
     if showCard.color == Card.Black then
-      room:addTableMark(to, "@@yijue-turn", from.id)
+      room:addTableMark(to, "@@yijue-turn", player.id)
       room:addPlayerMark(to, MarkEnum.UncompulsoryInvalidity .. "-turn")
     else
-      room:obtainCard(from, showCard, true, fk.ReasonPrey)
+      room:obtainCard(player, showCard, true, fk.ReasonPrey)
       if not to.dead and to:isWounded() then
-        if room:askToSkillInvoke(from, { skill_name = skill.name, prompt = "#yijue-recover::"..to.id }) then
-          room:recover({
+        if room:askToSkillInvoke(player, {
+          skill_name = skill.name,
+          prompt = "#yijue-recover::"..to.id,
+        }) then
+          room:recover{
             who = to,
             num = 1,
-            recoverBy = from,
-            skillName = self.name,
-          })
+            recoverBy = player,
+            skillName = skill.name,
+          }
         end
       end
     end
   end
-}):addEffect('prohibit', {
+})
+skill:addEffect('prohibit', {
   prohibit_use = function(self, player, card)
     return player:getMark("@@yijue-turn") ~= 0
   end,
   prohibit_response = function(self, player, card)
     return player:getMark("@@yijue-turn") ~= 0
   end,
-}):addEffect(fk.DamageCaused, {
-  mute = true,
-  events = {fk.DamageCaused},
+})
+skill:addEffect(fk.DamageCaused, {
+  anim_type = "offensive",
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and not player.dead and data.card and data.card.trueName == "slash" and data.card.suit == Card.Heart and
-    table.contains(data.to:getTableMark("@@yijue-turn"), player.id) and not data.chain
+    return target == player and data.card and data.card.trueName == "slash" and data.card.suit == Card.Heart and
+    table.contains(data.to:getTableMark("@@yijue-turn"), player.id) and player.room.logic:damageByCardEffect()
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    data.damage = data.damage + 1
+    data:changeDamage(1)
   end,
 })
 

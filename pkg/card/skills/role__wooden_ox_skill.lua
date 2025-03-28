@@ -104,9 +104,8 @@ skill:addEffect(fk.AfterCardsMove, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     local cards = player:getPile("$role_carriage")
-    local to = event:getCostData(self).extra_data
-    if to then
-      to:addToPile("$role_carriage", cards, false, skill.name)
+    if event:getCostData(self) ~= nil then
+      event:getCostData(self).extra_data:addToPile("$role_carriage", cards, false, skill.name)
     else
       room:moveCardTo(cards, Card.DiscardPile, nil, fk.ReasonPutIntoDiscardPile, skill.name, nil, true)
     end
