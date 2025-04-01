@@ -23,9 +23,9 @@ skill:addEffect('active', {
   end,
   card_filter = Util.FalseFunc,
   target_filter = function(self, player, to_select, selected, selected_cards)
-    local target = Fk:currentRoom():getPlayerById(to_select)
-    return to_select ~= player.id and not target:isNude() and
-      table.every(selected, function(id) return target.kingdom ~= Fk:currentRoom():getPlayerById(id).kingdom end)
+    local target = to_select
+    return to_select ~= player and not target:isNude() and
+      table.every(selected, function(p) return target.kingdom ~= p.kingdom end)
   end,
   on_use = function(self, room, effect)
     local player = effect.from

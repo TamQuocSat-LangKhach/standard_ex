@@ -35,7 +35,7 @@ skill:addEffect('active', {
   end,
   target_filter = function(self, player, to_select, selected, cards)
     if #cards ~= 1 or #selected > 0 or (not self.interaction.data) or to_select == player.id then return false end
-    local target = Fk:currentRoom():getPlayerById(to_select)
+    local target = to_select
     return target:isMale() and (self.interaction.data == "ex__jieyin_discard" or
       target:hasEmptyEquipSlot(Fk:getCardById(cards[1]).sub_type))
   end,

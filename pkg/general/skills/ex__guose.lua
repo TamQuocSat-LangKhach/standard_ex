@@ -41,7 +41,7 @@ skill:addEffect('active', {
   end,
   target_filter = function(self, player, to_select, selected, cards)
     if #cards ~= 1 or #selected > 0 or not self.interaction.data then return false end
-    local target = Fk:currentRoom():getPlayerById(to_select)
+    local target = to_select
     if self.interaction.data == "ex__guose_use" then
       local card = Fk:cloneCard("indulgence")
       card:addSubcard(cards[1])
@@ -51,8 +51,8 @@ skill:addEffect('active', {
     end
   end,
   on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
+    local player = effect.from
+    local target = effect.tos[1]
     if self.interaction.data == "ex__guose_use" then
       room:useVirtualCard("indulgence", effect.cards, player, target, skill.name)
     else

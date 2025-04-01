@@ -23,8 +23,8 @@ skill:addEffect('active', {
   card_filter = function(self, to_select, selected)
     return table.contains(Self:getCardIds("h"), to_select)
   end,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):getMark("_ex__rende-phase") == 0
+  target_filter = function(self, player, to_select, selected)
+    return #selected == 0 and to_select ~= player and to_select:getMark("_ex__rende-phase") == 0
   end,
   on_use = function(self, room, effect)
     local target = room:getPlayerById(effect.tos[1])
