@@ -17,14 +17,14 @@ skill:addEffect('active', {
   card_num = 1,
   target_num = 0,
   prompt = "#ex__kurou",
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and not Self:prohibitDiscard(Fk:getCardById(to_select))
+  card_filter = function(self, player, to_select, selected)
+    return #selected == 0 and not player:prohibitDiscard(Fk:getCardById(to_select))
   end,
   can_use = function(self, player)
     return player:usedSkillTimes(skill.name, Player.HistoryPhase) == 0
   end,
   on_use = function(self, room, effect)
-    local from = room:getPlayerById(effect.from)
+    local from = effect.from
     room:throwCard(effect.cards, self.name, from, from)
     if not from.dead then
       room:loseHp(from, 1, self.name)

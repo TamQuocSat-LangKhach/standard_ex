@@ -15,7 +15,7 @@ local skill = fk.CreateSkill{
 skill:addEffect('viewas', {
   pattern = "slash,jink,peach,analeptic",
   handly_pile = true,
-  card_filter = function(self, to_select, selected)
+  card_filter = function(self, player, to_select, selected)
     if #selected ~= 0 then return false end
     local _c = Fk:getCardById(to_select)
     local c
