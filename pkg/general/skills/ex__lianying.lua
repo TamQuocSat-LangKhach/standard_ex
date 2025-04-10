@@ -15,7 +15,7 @@ local skill = fk.CreateSkill{
 skill:addEffect(fk.AfterCardsMove, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    if not (player:hasSkill(skill.name) and player:isKongcheng()) then return false end
+    if not (player:hasSkill(self) and player:isKongcheng()) then return false end
     for _, move in ipairs(data) do
       if move.from == player then
         for _, info in ipairs(move.moveInfo) do

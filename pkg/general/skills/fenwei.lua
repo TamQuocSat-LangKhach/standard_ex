@@ -16,7 +16,7 @@ local skill = fk.CreateSkill{
 skill:addEffect(fk.TargetSpecified, {
   anim_type = "defensive",
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.card.type == Card.TypeTrick and #data:getAllTargets() > 1 and data.firstTarget and
+    return player:hasSkill(self) and data.card.type == Card.TypeTrick and #data.tos > 1 and data.firstTarget and
       player:usedSkillTimes(self.name, Player.HistoryGame) == 0
   end,
   on_cost = function(self, event, target, player, data)

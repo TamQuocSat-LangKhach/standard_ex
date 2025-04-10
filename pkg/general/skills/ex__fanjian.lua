@@ -22,20 +22,20 @@ skill:addEffect('active', {
   can_use = function(self, player)
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, player, to_select, selected)
+  card_filter = function(self, to_select, selected)
     return #selected == 0 and Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand
   end,
-  target_filter = function(self, player, to_select, selected)
-    return #selected == 0 and to_select ~= player
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id
   end,
   on_use = function(self, room, effect)
     local cid = effect.cards[1]
-    local player = effect.from
+    local player = room:getPlayerById(effect.from)
     player:showCards(cid)
     if player.dead then return end
     local suit = Fk:getCardById(cid).suit
     local suitString = Fk:getCardById(cid):getSuitString(true)
-    local target = effect.tos[1]
+    local target = room:getPlayerById(effect.tos[1])
     room:obtainCard(target.id, cid, true, fk.ReasonGive)
     if target.dead then return end
     local choices = { "ex__fanjian_show:::" .. suitString, "loseHp" }

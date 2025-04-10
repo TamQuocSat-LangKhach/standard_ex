@@ -23,9 +23,10 @@ skill:addEffect('active', {
   end,
   card_filter = Util.FalseFunc,
   target_filter = function(self, player, to_select, selected, selected_cards)
-    local target = to_select
-    return to_select ~= player and not target:isNude() and
-      table.every(selected, function(p) return target.kingdom ~= p.kingdom end)
+    return to_select ~= player and not to_select:isNude() and
+      table.every(selected, function(p)
+        return p.kingdom ~= to_select.kingdom
+      end)
   end,
   on_use = function(self, room, effect)
     local player = effect.from
@@ -35,8 +36,20 @@ skill:addEffect('active', {
     for _, target in ipairs(effect.tos) do
       if player.dead then break end
       if not target:isNude() then
-        local cards = (target == player) and room:askToDiscard(player, { min_num = 1, max_num = 1, include_equip = true, skill_name = skill.name, cancelable = false, pattern = ".", skip = true }) or
-        {room:askToChooseCard(player, { target = target, flag = "he", skill_name = skill.name, prompt = "#ex__chuli-discard::"..target.id })}
+        local cards = (target == player) and room:askToDiscard(player, {
+          min_num = 1,
+          max_num = 1,
+          include_equip = true,
+          skill_name = skill.name,
+          cancelable = false,
+          skip = true,
+        }) or
+        {room:askToChooseCard(player, {
+          target = target,
+          flag = "he",
+          skill_name = skill.name,
+          prompt = "#ex__chuli-discard::"..target.id,
+        })}
         if #cards > 0 then
           room:throwCard(cards, skill.name, target, player)
           if Fk:getCardById(cards[1]).suit == Card.Spade then

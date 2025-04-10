@@ -8,20 +8,20 @@ Fk:loadTranslationTable{
   ["$ex__kurou2"] = "为成大业，死不足惜！",
 }
 
-local skill = fk.CreateSkill{
+local kurou = fk.CreateSkill{
   name = "ex__kurou",
 }
 
-skill:addEffect('active', {
+kurou:addEffect("active", {
   anim_type = "negative",
   card_num = 1,
   target_num = 0,
   prompt = "#ex__kurou",
   card_filter = function(self, player, to_select, selected)
-    return #selected == 0 and not player:prohibitDiscard(Fk:getCardById(to_select))
+    return #selected == 0 and not player:prohibitDiscard(to_select)
   end,
   can_use = function(self, player)
-    return player:usedSkillTimes(skill.name, Player.HistoryPhase) == 0
+    return player:usedSkillTimes(kurou.name, Player.HistoryPhase) == 0
   end,
   on_use = function(self, room, effect)
     local from = effect.from
@@ -32,4 +32,4 @@ skill:addEffect('active', {
   end,
 })
 
-return skill
+return kurou

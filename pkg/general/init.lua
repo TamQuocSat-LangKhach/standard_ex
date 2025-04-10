@@ -114,7 +114,7 @@ General:new(extension, "ex__zhangfei", "shu", 4):addSkills{ "ex__paoxiao", "ex__
 Fk:loadTranslationTable{
   ["ex__zhangfei"] = "界张飞",
   ["#ex__zhangfei"] = "万夫不当",
-  ["cv:ex__zhangfei"] = "冷泉月夜",
+  ["cv:ex__zhangfei"] = "冷泉夜月",
   ["illustrator:ex__zhangfei"] = "SONGQIJIN",
 
   ["~ex__zhangfei"] = "桃园一拜，此生…无憾……",

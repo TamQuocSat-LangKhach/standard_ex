@@ -50,14 +50,14 @@ skill:addEffect('active', {
         table.insert(cards, id)
       end
     end
-    local targets = table.filter(room.alive_players, function(p)
+    local targets = table.map(table.filter(room.alive_players, function(p)
       return p:isMale()
-    end)
+    end), Util.IdMapper)
     if #targets == 0 then
       table.insert(cards, card.id)
     else
       local target = room:askToChoosePlayers(player, { targets = targets, min_num = 1, max_num = 1, prompt = "#jianyan-give:::"..card:toLogString(), skill_name = skill.name, cancelable = false })[1]
-      room:moveCardTo(card.id, Player.Hand, target, fk.ReasonGive, self.name, nil, true, player.id)
+      room:moveCardTo(card.id, Player.Hand, room:getPlayerById(target), fk.ReasonGive, self.name, nil, true, player.id)
     end
     cards = table.filter(cards, function(id) return room:getCardArea(id) == Card.Processing end)
     if #cards > 0 then

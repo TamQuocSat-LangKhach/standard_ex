@@ -1,4 +1,3 @@
-local U = require "packages/utility/utility"
 
 Fk:loadTranslationTable{
   ["ex__jianxiong"] = "奸雄",
@@ -8,23 +7,25 @@ Fk:loadTranslationTable{
   ["$ex__jianxiong2"] = "夫英雄者，胸怀大志，腹有良谋！",
 }
 
-local skill = fk.CreateSkill{
+local jianxiong = fk.CreateSkill{
   name = "ex__jianxiong",
 }
 
-skill:addEffect(fk.Damaged, {
+jianxiong:addEffect(fk.Damaged, {
   anim_type = "masochism",
   on_use = function(self, event, target, player, data)
-    if data.card and U.hasFullRealCard(player.room, data.card) then
-      player.room:obtainCard(player.id, data.card, true, fk.ReasonJustMove)
+    if data.card and player.room:getCardArea(data.card) == Card.Processing then
+      player.room:obtainCard(player, data.card, true, fk.ReasonJustMove, player, jianxiong.name)
     end
-    player:drawCards(1, skill.name)
+    if not player.dead then
+      player:drawCards(1, jianxiong.name)
+    end
   end,
 })
 
-skill:addTest(function(room, me)
+jianxiong:addTest(function(room, me)
   local comp2 = room.players[2] ---@type ServerPlayer, ServerPlayer
-  FkTest.runInRoom(function() room:handleAddLoseSkills(me, skill.name) end)
+  FkTest.runInRoom(function() room:handleAddLoseSkills(me, jianxiong.name) end)
 
   local slash = Fk:getCardById(1)
   FkTest.setNextReplies(me, { "__cancel", "1" })
@@ -40,4 +41,4 @@ skill:addTest(function(room, me)
   lu.assertEquals(#me:getCardIds("h"), 2)
 end)
 
-return skill
+return jianxiong
