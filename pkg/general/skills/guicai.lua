@@ -36,7 +36,7 @@ guicai:addEffect(fk.AskForRetrial, {
     end
   end,
   on_use = function(self, event, target, player, data)
-    player.room:ChangeJudge{
+    player.room:changeJudge{
       card = Fk:getCardById(event:getCostData(self).cards[1]),
       player = player,
       data = data,
