@@ -1,37 +1,41 @@
 Fk:loadTranslationTable{
   ["ex__qianxun"] = "谦逊",
-  [":ex__qianxun"] = "当一张延时锦囊牌或其他角色使用的普通锦囊牌对你生效时，若你是此牌唯一目标，则你可以将所有手牌扣置于武将牌上，然后此回合结束时，你获得这些牌。",
+  [":ex__qianxun"] = "当一张延时锦囊牌或其他角色使用的普通锦囊牌对你生效时，若你是此牌唯一目标，则你可以将所有手牌扣置于武将牌上，\
+  然后此回合结束时，你获得这些牌。",
 
   ["$ex__qianxun"] = "谦逊",
-  ["#ex__qianxun_delay"] = "谦逊",
 
   ["$ex__qianxun1"] = "满招损，谦受益。",
   ["$ex__qianxun2"] = "谦谦君子，温润如玉。",
 }
 
-local skill = fk.CreateSkill{
+local qianxun = fk.CreateSkill{
   name = "ex__qianxun",
 }
 
-skill:addEffect(fk.CardEffecting, {
+qianxun:addEffect(fk.CardEffecting, {
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(skill.name) and target == player and data.from ~= player and data.card.type == Card.TypeTrick and
-    data:isOnlyTarget(player) and not player:isKongcheng()
+    return target == player and player:hasSkill(qianxun.name) and
+      data.from ~= player and data.card.type == Card.TypeTrick and
+      data:isOnlyTarget(player) and not player:isKongcheng()
   end,
   on_use = function(self, event, target, player, data)
-    player:addToPile("$ex__qianxun", player:getCardIds("h"), false, self.name)
+    player:addToPile("$ex__qianxun", player:getCardIds("h"), false, qianxun.name)
   end,
-}):addEffect(fk.TurnEnd, {
+})
+
+qianxun:addEffect(fk.TurnEnd, {
+  mute = true,
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
     return #player:getPile("$ex__qianxun") > 0
   end,
-  on_cost = Util.TrueFunc,
   on_use = function(self, event, target, player, data)
-    player.room:obtainCard(player.id, player:getPile("$ex__qianxun"), false)
+    player.room:obtainCard(player, player:getPile("$ex__qianxun"), false)
   end,
-}, { is_delay_effect = true })
+})
 
-skill:addTest(function(room, me)
+qianxun:addTest(function(room, me)
   local comp2 = room.players[2]
   FkTest.runInRoom(function()
     room:handleAddLoseSkills(me, "ex__qianxun")
@@ -53,4 +57,4 @@ skill:addTest(function(room, me)
   lu.assertEquals(#me:getCardIds("h"), 4)
 end)
 
-return skill
+return qianxun

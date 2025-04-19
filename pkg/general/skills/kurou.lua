@@ -25,9 +25,9 @@ kurou:addEffect("active", {
   end,
   on_use = function(self, room, effect)
     local from = effect.from
-    room:throwCard(effect.cards, self.name, from, from)
+    room:throwCard(effect.cards, kurou.name, from, from)
     if not from.dead then
-      room:loseHp(from, 1, self.name)
+      room:loseHp(from, 1, kurou.name)
     end
   end,
 })

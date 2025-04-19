@@ -10,39 +10,56 @@ Fk:loadTranslationTable{
   ["$liyu2"] = "大丈夫，相时而动。",
 }
 
-local skill = fk.CreateSkill{
+local liyu = fk.CreateSkill{
   name = "liyu",
 }
 
-skill:addEffect(fk.Damage, {
+liyu:addEffect(fk.Damage, {
+  anim_type = "offensive",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and data.card and data.card.trueName == "slash"
-    and data.to ~= player and not data.to.dead and not data.to:isAllNude()
+    return target == player and player:hasSkill(liyu.name) and
+      data.card and data.card.trueName == "slash" and
+      data.to ~= player and not data.to.dead and not data.to:isAllNude()
   end,
   on_cost = function(self, event, target, player, data)
-    return target.room:askToSkillInvoke(player, { skill_name = skill.name, prompt = "#liyu-invoke::" .. data.to.id })
+    if player.room:askToSkillInvoke(player, {
+      skill_name = liyu.name,
+      prompt = "#liyu-invoke::" .. data.to.id,
+    }) then
+      event:setCostData(self, {tos = {data.to}})
+      return true
+    end
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     local to = data.to
-    local id = room:askToChooseCard(player, { target = to, flag = "hej", skill_name = skill.name })
-    room:obtainCard(player, id, true, fk.ReasonPrey)
+    local id = room:askToChooseCard(player, {
+      target = to,
+      flag = "hej",
+      skill_name = liyu.name,
+    })
+    room:obtainCard(player, id, true, fk.ReasonPrey, player, liyu.name)
+    if to.dead then return end
     if Fk:getCardById(id).type ~= Card.TypeEquip then
-      if not to.dead then
-        to:drawCards(1, skill.name)
-      end
+      to:drawCards(1, liyu.name)
     else
       local card = Fk:cloneCard("duel")
-      if player:prohibitUse(card) then return false end
+      if player.dead or player:prohibitUse(card) then return false end
       local targets = table.filter(room.alive_players, function(p)
         return not player:isProhibited(p, card) and p ~= player and p ~= to
       end)
       if #targets == 0 then return false end
-      local victim = room:askToChoosePlayers(to, { targets = targets, max_num = 1, min_num = 1,
-        prompt = "#liyu-ask:" .. player.id, skill_name = skill.name, cancelable = false })[1]
-      room:useVirtualCard("duel", nil, player, victim, skill.name)
+      local victim = room:askToChoosePlayers(to, {
+        targets = targets,
+        max_num = 1,
+        min_num = 1,
+        prompt = "#liyu-ask:" .. player.id,
+        skill_name = liyu.name,
+        cancelable = false,
+      })[1]
+      room:useVirtualCard("duel", nil, player, victim, liyu.name)
     end
   end,
 })
 
-return skill
+return liyu

@@ -8,14 +8,14 @@ Fk:loadTranslationTable{
   ["$ex__lianying2"] = "失之淡然，得之坦然。",
 }
 
-local skill = fk.CreateSkill{
+local lianying = fk.CreateSkill{
   name = "ex__lianying",
 }
 
-skill:addEffect(fk.AfterCardsMove, {
+lianying:addEffect(fk.AfterCardsMove, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    if not (player:hasSkill(self) and player:isKongcheng()) then return false end
+    if not (player:hasSkill(lianying.name) and player:isKongcheng()) then return false end
     for _, move in ipairs(data) do
       if move.from == player then
         for _, info in ipairs(move.moveInfo) do
@@ -34,25 +34,33 @@ skill:addEffect(fk.AfterCardsMove, {
         for _, info in ipairs(move.moveInfo) do
           if info.fromArea == Card.PlayerHand then
             n = n + 1
+            if n >= #room.alive_players then
+              break
+            end
           end
         end
       end
     end
-    local players = room:askToChoosePlayers(player, { targets = table.map(room.alive_players, Util.IdMapper), min_num = 1, max_num = n,
-      prompt = "#ex__lianying-invoke:::"..n, skill_name = skill.name })
-    if #players > 0 then
-      room:sortByAction(players)
-      self.cost_data = { tos = players }
+    local tos = room:askToChoosePlayers(player, {
+      targets = room.alive_players,
+      min_num = 1,
+      max_num = n,
+      prompt = "#ex__lianying-invoke:::"..n,
+      skill_name = lianying.name
+    })
+    if #tos > 0 then
+      room:sortByAction(tos)
+      event:setCostData(self, {tos = tos})
       return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    local room = player.room
-    for _, pid in ipairs(self.cost_data.tos) do
-      local p = room:getPlayerById(pid)
-      if not p.dead then p:drawCards(1, self.name) end
+    for _, p in ipairs(event:getCostData(self).tos) do
+      if not p.dead then
+        p:drawCards(1, lianying.name)
+      end
     end
   end,
 })
 
-return skill
+return lianying

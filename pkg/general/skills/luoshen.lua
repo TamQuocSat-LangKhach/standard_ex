@@ -8,47 +8,53 @@ Fk:loadTranslationTable{
   ["$ex__luoshen2"] = "冯夷鸣鼓，女娲清歌。",
 }
 
-local skill = fk.CreateSkill{
+local luoshen = fk.CreateSkill{
   name = "ex__luoshen",
 }
 
-skill:addEffect(fk.EventPhaseStart, {
+luoshen:addEffect(fk.EventPhaseStart, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player.phase == Player.Start and player:hasSkill(self)
+    return target == player and player.phase == Player.Start and player:hasSkill(luoshen.name)
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     while true do
       local judge = {
         who = player,
-        reason = skill.name,
+        reason = luoshen.name,
         pattern = ".|.|spade,club",
       }
       room:judge(judge)
-      if judge.card.color ~= Card.Black then
-        break
-      end
-      if not room:askToSkillInvoke(player, { skill_name = skill.name }) then
+      if not judge:matchPattern() or player.dead or
+        not room:askToSkillInvoke(player, {
+          skill_name = luoshen.name,
+        }) then
         break
       end
     end
   end,
-}):addEffect(fk.FinishJudge, {
+})
+
+luoshen:addEffect(fk.FinishJudge, {
   mute = true,
-  frequency = Skill.Compulsory,
+  is_delay_effect = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and data.reason == skill.name and
-    data.card.color == Card.Black and player.room:getCardArea(data.card.id) == Card.Processing
+    return target == player and data.reason == luoshen.name and
+      data.card.color == Card.Black and player.room:getCardArea(data.card) == Card.Processing
   end,
   on_use = function(self, event, target, player, data)
-    player.room:obtainCard(player, data.card, true, nil, player.id, skill.name, "@@ex__luoshen-inhand-turn")
+    player.room:obtainCard(player, data.card, true, nil, player, luoshen.name, "@@ex__luoshen-inhand-turn")
   end,
-}):addEffect('maxcards', {
+})
+
+luoshen:addEffect("maxcards", {
   exclude_from = function(self, player, card)
     return card:getMark("@@ex__luoshen-inhand-turn") > 0
   end,
-}):addTest(function(room, me)
+})
+
+luoshen:addTest(function(room, me)
   FkTest.runInRoom(function()
     room:handleAddLoseSkills(me, "ex__luoshen")
   end)
@@ -82,4 +88,4 @@ skill:addEffect(fk.EventPhaseStart, {
   lu.assertEquals(#me:getCardIds("h"), rnd)
 end)
 
-return skill
+return luoshen

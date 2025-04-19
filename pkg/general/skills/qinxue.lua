@@ -6,16 +6,16 @@ Fk:loadTranslationTable{
   ["$qinxue2"] = "勤以修身，学以报国。",
 }
 
-local skill = fk.CreateSkill{
+local qinxue = fk.CreateSkill{
   name = "qinxue",
-  tags = { Skill.Wake }
+  tags = { Skill.Wake },
 }
 
-skill:addEffect(fk.EventPhaseStart, {
+qinxue:addEffect(fk.EventPhaseStart, {
   can_trigger = function(self, event, target, player, data)
     return target == player and player:hasSkill(self) and
       player.phase == Player.Start and
-      player:usedSkillTimes(self.name, Player.HistoryGame) == 0
+      player:usedSkillTimes(qinxue.name, Player.HistoryGame) == 0
   end,
   can_wake = function(self, event, target, player, data)
     return (player:getHandcardNum() - player.hp > 2) or
@@ -24,8 +24,9 @@ skill:addEffect(fk.EventPhaseStart, {
   on_use = function(self, event, target, player, data)
     local room = player.room
     room:changeMaxHp(player, -1)
+    if player.dead then return end
     room:handleAddLoseSkills(player, "gongxin", nil)
   end,
 })
 
-return skill
+return qinxue

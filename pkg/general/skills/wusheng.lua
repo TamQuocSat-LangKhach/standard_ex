@@ -30,9 +30,8 @@ wusheng:addEffect("viewas", {
 })
 
 wusheng:addEffect("targetmod", {
-  anim_type = "offensive",
   bypass_distances = function (self, player, skill, card)
-    return player:hasSkill(wusheng.name) and card and card.trueName == "slash_skill" and card.suit == Card.Diamond
+    return player:hasSkill(wusheng.name) and card and skill.trueName == "slash_skill" and card.suit == Card.Diamond
   end
 })
 

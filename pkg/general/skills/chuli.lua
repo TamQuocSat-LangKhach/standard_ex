@@ -9,17 +9,17 @@ Fk:loadTranslationTable{
   ["$ex__chuli2"] = "病入膏肓，需下猛药。",
 }
 
-local skill = fk.CreateSkill{
+local chuli = fk.CreateSkill{
   name = "ex__chuli",
 }
 
-skill:addEffect('active', {
+chuli:addEffect("active", {
   anim_type = "control",
   card_num = 0,
   min_target_num = 1,
   prompt = "#ex__chuli",
   can_use = function(self, player)
-    return player:usedSkillTimes(skill.name, Player.HistoryPhase) == 0 and not player:isNude()
+    return player:usedSkillTimes(chuli.name, Player.HistoryPhase) == 0 and not player:isNude()
   end,
   card_filter = Util.FalseFunc,
   target_filter = function(self, player, to_select, selected, selected_cards)
@@ -36,22 +36,27 @@ skill:addEffect('active', {
     for _, target in ipairs(effect.tos) do
       if player.dead then break end
       if not target:isNude() then
-        local cards = (target == player) and room:askToDiscard(player, {
-          min_num = 1,
-          max_num = 1,
-          include_equip = true,
-          skill_name = skill.name,
-          cancelable = false,
-          skip = true,
-        }) or
-        {room:askToChooseCard(player, {
-          target = target,
-          flag = "he",
-          skill_name = skill.name,
-          prompt = "#ex__chuli-discard::"..target.id,
-        })}
+        local cards = {}
+        if target == player then
+          cards = room:askToDiscard(player, {
+            min_num = 1,
+            max_num = 1,
+            include_equip = true,
+            skill_name = chuli.name,
+            cancelable = false,
+            skip = true,
+          })
+        else
+          local card = room:askToChooseCard(player, {
+            target = target,
+            flag = "he",
+            skill_name = chuli.name,
+            prompt = "#ex__chuli-discard::"..target.id,
+          })
+          cards = {card}
+        end
         if #cards > 0 then
-          room:throwCard(cards, skill.name, target, player)
+          room:throwCard(cards, chuli.name, target, player)
           if Fk:getCardById(cards[1]).suit == Card.Spade then
             table.insert(draw, target)
           end
@@ -60,10 +65,10 @@ skill:addEffect('active', {
     end
     for _, p in ipairs(draw) do
       if not p.dead then
-        p:drawCards(1, skill.name)
+        p:drawCards(1, chuli.name)
       end
     end
   end,
 })
 
-return skill
+return chuli

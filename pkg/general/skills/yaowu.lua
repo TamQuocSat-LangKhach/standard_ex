@@ -6,44 +6,47 @@ Fk:loadTranslationTable{
   ["$yaowu2"] = "哼，先让你尝点甜头！",
 }
 
-local skill = fk.CreateSkill{
+local yaowu = fk.CreateSkill{
   name = "yaowu",
-  tags = { Skill.Compulsory }
+  tags = { Skill.Compulsory },
 }
 
-skill:addEffect(fk.DamageInflicted, {
+yaowu:addEffect(fk.DamageInflicted, {
+  mute = true,
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and data.card and data.card.trueName == "slash"
-    and (data.card.color ~= Card.Red or (data.from and not data.from.dead))
+    return target == player and player:hasSkill(yaowu.name) and
+      data.card and data.card.trueName == "slash" and
+      (data.card.color ~= Card.Red or (data.from and not data.from.dead))
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
     if data.card.color ~= Card.Red then
-      room:notifySkillInvoked(player, skill.name, "masochism")
-      player:broadcastSkillInvoke(skill.name, 1)
-      player:drawCards(1, skill.name)
+      room:notifySkillInvoked(player, yaowu.name, "masochism")
+      player:broadcastSkillInvoke(yaowu.name, 1)
+      player:drawCards(1, yaowu.name)
     else
-      room:notifySkillInvoked(player, skill.name, "negative")
-      player:broadcastSkillInvoke(skill.name, 2)
-      local from = data.from
-      if not from then return end
+      room:notifySkillInvoked(player, yaowu.name, "negative")
+      player:broadcastSkillInvoke(yaowu.name, 2)
       local choices = {"draw1"}
-      if from:isWounded() then
+      if data.from:isWounded() then
         table.insert(choices, "recover")
       end
-      local choice = room:askToChoice(from, { choices = choices, skill_name = skill.name })
+      local choice = room:askToChoice(data.from, {
+        choices = choices,
+        skill_name = yaowu.name,
+      })
       if choice == "recover" then
         room:recover({
-          who = from,
+          who = data.from,
           num = 1,
-          recoverBy = from,
-          skillName = self.name,
+          recoverBy = data.from,
+          skillName = yaowu.name,
         })
       else
-        from:drawCards(1, self.name)
+        data.from:drawCards(1, yaowu.name)
       end
     end
-  end
+  end,
 })
 
-return skill
+return yaowu

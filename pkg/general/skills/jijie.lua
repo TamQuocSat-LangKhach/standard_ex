@@ -9,23 +9,31 @@ Fk:loadTranslationTable{
   ["$jijie2"] = "识言观行，方能雍容风议。",
 }
 
-local skill = fk.CreateSkill{
+local jijie = fk.CreateSkill{
   name = "jijie",
 }
 
-skill:addEffect('active', {
+jijie:addEffect("active", {
   anim_type = "support",
+  prompt = "#jijie",
   card_num = 0,
   target_num = 0,
   max_phase_use_time = 1,
-  prompt = "#jijie",
   card_filter = Util.FalseFunc,
   on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
+    local player = effect.from
     local cids = room:getNCards(1, "bottom")
-    room:askToYiji(player, { cards = cids, targets = room.alive_players, skill_name = self.name, max_num = 1, min_num = 1,
-    prompt = "#jijie-give:::" .. Fk:getCardById(cids[1]):toLogString(), expand_pile = cids, cancelable = false })
+    room:askToYiji(player, {
+      cards = cids,
+      targets = room.alive_players,
+      skill_name = jijie.name,
+      max_num = 1,
+      min_num = 1,
+      prompt = "#jijie-give:::" .. Fk:getCardById(cids[1]):toLogString(),
+      expand_pile = cids,
+      cancelable = false,
+    })
   end,
 })
 
-return skill
+return jijie

@@ -8,18 +8,18 @@ Fk:loadTranslationTable{
   ["$ex__zhiheng2"] = "制衡互牵，大局可安。",
 }
 
-local skill = fk.CreateSkill{
+local zhiheng = fk.CreateSkill{
   name = "ex__zhiheng",
 }
 
-skill:addEffect('active', {
+zhiheng:addEffect("active", {
   anim_type = "drawcard",
   min_card_num = 1,
   target_num = 0,
   prompt = "#ex__zhiheng",
   max_phase_use_time = 1,
   card_filter = function(self, player, to_select, selected)
-    return not player:prohibitDiscard(Fk:getCardById(to_select))
+    return not player:prohibitDiscard(to_select)
   end,
   on_use = function(self, room, effect)
     local player = effect.from
@@ -31,10 +31,10 @@ skill:addEffect('active', {
         break
       end
     end
-    room:throwCard(effect.cards, self.name, player, player)
+    room:throwCard(effect.cards, zhiheng.name, player, player)
     if not player.dead then
-      room:drawCards(player, #effect.cards + (more and 1 or 0), self.name)
+      room:drawCards(player, #effect.cards + (more and 1 or 0), zhiheng.name)
     end
   end
 })
-return skill
+return zhiheng

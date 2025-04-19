@@ -131,12 +131,14 @@ Fk:loadTranslationTable{
   ["~ex__zhugeliang"] = "穷尽毕生，有憾无悔。",
 }
 
-General:new(extension, "ex__zhaoyun", "shu", 4):addSkills{ "ex__longdan", "yajiao" }
+General:new(extension, "ex__zhaoyun", "shu", 4):addSkills{ "longdan", "yajiao" }
 Fk:loadTranslationTable{
   ["ex__zhaoyun"] = "界赵云",
   ["#ex__zhaoyun"] = "虎威将军",
 	["illustrator:ex__zhaoyun"] = "DH",
 
+  ["$longdan_ex__zhaoyun1"] = "龙威虎胆，斩敌破阵！",
+  ["$longdan_ex__zhaoyun2"] = "进退自如，游刃有余！",
   ["~ex__zhaoyun"] = "你们谁…还敢再上……",
 }
 

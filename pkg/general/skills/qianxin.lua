@@ -6,15 +6,15 @@ Fk:loadTranslationTable{
   ["$qianxin2"] = "弃武从文，安邦卫国！",
 }
 
-local skill = fk.CreateSkill{
+local qianxin = fk.CreateSkill{
   name = "qianxin",
-  tags = { Skill.Wake }
+  tags = { Skill.Wake },
 }
 
-skill:addEffect(fk.Damage, {
+qianxin:addEffect(fk.Damage, {
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and
-      player:usedSkillTimes(skill.name, Player.HistoryGame) == 0
+    return target == player and player:hasSkill(qianxin.name) and
+      player:usedSkillTimes(qianxin.name, Player.HistoryGame) == 0
   end,
   can_wake = function(self, event, target, player, data)
     return player:isWounded()
@@ -23,8 +23,8 @@ skill:addEffect(fk.Damage, {
     local room = player.room
     room:changeMaxHp(player, -1)
     if not player.dead then
-      room:handleAddLoseSkills(player, "jianyan", nil)
+      room:handleAddLoseSkills(player, "jianyan")
     end
   end,
 })
-return skill
+return qianxin

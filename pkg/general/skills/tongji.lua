@@ -6,30 +6,34 @@ Fk:loadTranslationTable{
   ["$tongji2"] = "你，你这是反啦！",
 }
 
-local skill = fk.CreateSkill{
+local tongji = fk.CreateSkill{
   name = "tongji",
-  tags = { Skill.Compulsory }
+  tags = { Skill.Compulsory },
 }
 
-skill:addEffect('prohibit', {
+tongji:addEffect("prohibit", {
   is_prohibited = function(self, from, to, card)
-    local targets = table.filter(Fk:currentRoom().alive_players, function(p)
-      return p:hasSkill(skill.name) and p:getHandcardNum() > p.hp and from:inMyAttackRange(p)
-    end)
-    if #targets > 0 then
-      return card.trueName == "slash" and not table.contains(targets, to)
+    if card and card.trueName == "slash" then
+      local targets = table.filter(Fk:currentRoom().alive_players, function(p)
+        return p:hasSkill(tongji.name) and p:getHandcardNum() > p.hp and from:inMyAttackRange(p)
+      end)
+      if #targets > 0 then
+        return not table.contains(targets, to)
+      end
     end
   end,
-}):addEffect(fk.TargetConfirmed, {
+})
+
+tongji:addEffect(fk.TargetConfirmed, {
   can_refresh = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and player:getHandcardNum() > player.hp and
+    return target == player and player:hasSkill(tongji.name) and player:getHandcardNum() > player.hp and
       data.card and data.card.trueName == "slash"
   end,
   on_refresh = function(self, event, target, player, data)
     local room = player.room
-    room:notifySkillInvoked(player, skill.name, "negative")
-    player:broadcastSkillInvoke(skill.name)
+    room:notifySkillInvoked(player, tongji.name, "negative")
+    player:broadcastSkillInvoke(tongji.name)
   end,
 })
 
-return skill
+return tongji

@@ -6,63 +6,64 @@ Fk:loadTranslationTable{
   ["$qiaomeng2"] = "夺敌辎重，以为己用。",
 }
 
-local skill = fk.CreateSkill{
+local qiaomeng = fk.CreateSkill{
   name = "qiaomeng",
 }
 
-skill:addEffect(fk.Damage, {
+qiaomeng:addEffect(fk.Damage, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.card and data.card.trueName == "slash" and
+    return target == player and player:hasSkill(qiaomeng.name) and
+      data.card and data.card.trueName == "slash" and
       not data.to.dead and #data.to:getCardIds("e") > 0 and data.card.color == Card.Black
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local to = data.to
-    local cid = room:askToChooseCard(player, { target = to, flag = "e", skill_name = skill.name })
-    if table.contains({Card.SubtypeDefensiveRide, Card.SubtypeOffensiveRide}, Fk:getCardById(cid, true).sub_type) then
-      local record = player:getMark("_qiaomeng") ~= 0 and player:getMark("_qiaomeng") or {}
-      table.insertIfNeed(record, cid)
-      room:setPlayerMark(player, "_qiaomeng", record)
-    end
-    room:throwCard({cid}, self.name, to, player)
+    local cid = room:askToChooseCard(player, {
+      target = data.to,
+      flag = "e",
+      skill_name = qiaomeng.name,
+    })
+    room:throwCard(cid, qiaomeng.name, data.to, player)
   end,
-}):addEffect(fk.AfterCardsMove, {
-  anim_type = "control",
-  mute = true,
-  can_trigger = function(self, event, target, player, data)
-    if player:getMark("_qiaomeng") == 0 or player.dead then return false end
-    for _, move in ipairs(data) do
-      if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
-        for _, info in ipairs(move.moveInfo) do
-          if table.contains(player:getMark("_qiaomeng"), info.cardId) then
-            return true
-          end
-        end
-      end
-    end
-  end,
-  on_cost = Util.TrueFunc,
-  on_use = function(self, event, target, player, data)
-    local cids = {}
-    local room = player.room
-    for _, move in ipairs(data) do
-      if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard then
-        for _, info in ipairs(move.moveInfo) do
-          if table.contains(player:getMark("_qiaomeng"), info.cardId) then
-            table.insertIfNeed(cids, info.cardId)
-          end
-        end
-      end
-    end
-    local record = player:getMark("_qiaomeng") ~= 0 and player:getMark("_qiaomeng") or {}
-    table.forEach(cids, function(cid)
-      table.removeOne(record, cid)
-    end)
-    if #record == 0 then record = 0 end
-    room:setPlayerMark(player, "_qiaomeng", record)
-    room:obtainCard(player, cids, true, fk.ReasonPrey)
-  end,
-}, { is_delay_effect = true })
+})
 
-return skill
+qiaomeng:addEffect(fk.AfterCardsMove, {
+  mute = true,
+  is_delay_effect = true,
+  can_trigger = function(self, event, target, player, data)
+    if not player.dead then
+      for _, move in ipairs(data) do
+        if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard and
+          move.skillName == qiaomeng.name and move.proposer == player then
+          for _, info in ipairs(move.moveInfo) do
+            if (Fk:getCardById(info.cardId).sub_type == Card.SubtypeDefensiveRide or
+              Fk:getCardById(info.cardId).sub_type == Card.SubtypeOffensiveRide) and
+              table.contains(player.room.discard_pile, info.cardId) then
+              return true
+            end
+          end
+        end
+      end
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local ids = {}
+    for _, move in ipairs(data) do
+      if move.toArea == Card.DiscardPile and move.moveReason == fk.ReasonDiscard and
+        move.skillName == qiaomeng.name and move.proposer == player then
+        for _, info in ipairs(move.moveInfo) do
+          if (Fk:getCardById(info.cardId).sub_type == Card.SubtypeDefensiveRide or
+            Fk:getCardById(info.cardId).sub_type == Card.SubtypeOffensiveRide) and
+            table.contains(room.discard_pile, info.cardId) then
+            table.insertIfNeed(ids, info.cardId)
+          end
+        end
+      end
+    end
+    room:obtainCard(player, ids, true, fk.ReasonJustMove, player, qiaomeng.name)
+  end,
+})
+
+return qiaomeng

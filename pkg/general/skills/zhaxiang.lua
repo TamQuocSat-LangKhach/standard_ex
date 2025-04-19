@@ -11,15 +11,13 @@ Fk:loadTranslationTable{
 
 local zhaxiang = fk.CreateSkill{
   name = "zhaxiang",
-  tags = { Skill.Compulsory }
+  tags = { Skill.Compulsory },
 }
 
 zhaxiang:addEffect(fk.HpLost, {
-  on_trigger = function(self, event, target, player, data)
-    for i = 1, data.num do
-      if i > 1 and not player:hasSkill(self) then break end
-      self:doCost(event, target, player, data)
-    end
+  anim_type = "drawcard",
+  trigger_times = function(self, event, target, player, data)
+    return data.num
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(3, zhaxiang.name)
@@ -29,27 +27,34 @@ zhaxiang:addEffect(fk.HpLost, {
       room:addPlayerMark(player, MarkEnum.SlashResidue.."-phase")
     end
   end,
-}):addEffect(fk.PreCardUse, {
+})
+
+zhaxiang:addEffect(fk.PreCardUse, {
   can_refresh = function(self, event, target, player, data)
-    return player == target and data.card.trueName == "slash" and data.card.color == Card.Red and
+    return player == target and player.phase == Player.Play and
+      data.card.trueName == "slash" and data.card.color == Card.Red and
       player:usedSkillTimes(zhaxiang.name, Player.HistoryPhase) > 0
   end,
   on_refresh = function(self, event, target, player, data)
-    data.disresponsiveList = table.map(player.room.alive_players, Util.IdMapper)
+    data.disresponsiveList = table.simpleClone(player.room.alive_players)
   end,
-}, { is_delay_effect = true }):addEffect('targetmod', {
+})
+
+zhaxiang:addEffect("targetmod", {
   bypass_distances =  function(self, player, skill, card)
-    return card.trueName == "slash" and card.color == Card.Red and player:usedSkillTimes(zhaxiang.name, Player.HistoryPhase) > 0
+    return card.trueName == "slash" and card.color == Card.Red and player.phase == Player.Play and
+      player:usedSkillTimes(zhaxiang.name, Player.HistoryPhase) > 0
   end,
 })
 
 zhaxiang:addTest(function(room, me)
   FkTest.runInRoom(function()
-    room:handleAddLoseSkills(me, "zhaxiang")
+    room:handleAddLoseSkills(me, zhaxiang.name)
   end)
   FkTest.runInRoom(function()
     room:loseHp(me, 2)
   end)
   lu.assertEquals(#me:getCardIds("h"), 6)
 end)
+
 return zhaxiang

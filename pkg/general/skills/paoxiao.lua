@@ -10,7 +10,7 @@ Fk:loadTranslationTable{
 
 local paoxiao = fk.CreateSkill{
   name = "ex__paoxiao",
-  tag = { Skill.Compulsory }
+  tags = { Skill.Compulsory },
 }
 
 paoxiao:addEffect("targetmod", {

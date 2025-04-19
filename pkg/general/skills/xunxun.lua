@@ -8,18 +8,25 @@ Fk:loadTranslationTable{
   ["$xunxun2"] = "爱兵如子，胜乃可全。",
 }
 
-local skill = fk.CreateSkill{
+local xunxun = fk.CreateSkill{
   name = "xunxun",
 }
 
-skill:addEffect(fk.EventPhaseStart, {
+xunxun:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and player.phase == Player.Draw
+    return target == player and player:hasSkill(xunxun.name) and player.phase == Player.Draw
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    local ret = room:askToArrangeCards(player, { skill_name = self.name, card_map = {room:getNCards(4), "Bottom", "Top"}, prompt = "#xunxun", free_arrange = true, max_limit = {4, 2}, min_limit = {0, 2} })
+    local ret = room:askToArrangeCards(player, {
+      skill_name = xunxun.name,
+      card_map = {room:getNCards(4), "Bottom", "Top"},
+      prompt = "#xunxun",
+      free_arrange = true,
+      max_limit = {4, 2},
+      min_limit = {0, 2},
+    })
     local top, bottom = ret[2], ret[1]
     for i = #top, 1, -1 do
       table.removeOne(room.draw_pile, top[i])
@@ -38,4 +45,4 @@ skill:addEffect(fk.EventPhaseStart, {
   end,
 })
 
-return skill
+return xunxun

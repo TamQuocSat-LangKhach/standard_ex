@@ -8,83 +8,50 @@ Fk:loadTranslationTable{
   ["$wangxi2"] = "前尘往事，莫再提起。",
 }
 
-local skill = fk.CreateSkill{
+local wangxi = fk.CreateSkill{
   name = "wangxi",
 }
 
-skill:addEffect(fk.Damaged, {
+local spec = {
   anim_type = "masochism",
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and data.from and data.from ~= data.to and not (data.from.dead or data.to.dead)
+  trigger_times = function(self, event, target, player, data)
+    return data.damage
   end,
-  on_trigger = function(self, event, target, player, data)
-    self.cancel_cost = false
-    for i = 1, data.damage do
-      if i > 1 and self.cancel_cost or not self:triggerable(event, target, player, data) then break end
-      self:doCost(event, target, player, data)
-    end
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(wangxi.name) and
+      data.from and data.from ~= data.to and not (data.from.dead or data.to.dead)
   end,
   on_cost = function(self, event, target, player, data)
-    local to = data.from
+    local to = data.from == player and data.to or data.from
     local room = player.room
-    if room:askToSkillInvoke(player, { skill_name = self.name, prompt = "#wangxi-invoke::"..to.id }) then
-      room:doIndicate(player.id, {to.id})
+    if room:askToSkillInvoke(player, {
+      skill_name = self.name,
+      prompt = "#wangxi-invoke::"..to.id,
+    }) then
+      event:setCostData(self, {tos = {to}})
       return true
     end
-    self.cancel_cost = true
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    player:broadcastSkillInvoke(self.name)
     local tos = {player}
     table.insertIfNeed(tos, data.from)
     table.insertIfNeed(tos, data.to)
     room:sortByAction(tos)
     for _, to in ipairs(tos) do
       if not to.dead then
-        room:drawCards(to, 1, self.name)
+        room:drawCards(to, 1, wangxi.name)
       end
     end
-  end
-}):addEffect(fk.Damage, {
-  anim_type = "drawcard",
-  can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(skill.name) and data.from and data.from ~= data.to and not (data.from.dead or data.to.dead)
   end,
-  on_trigger = function(self, event, target, player, data)
-    self.cancel_cost = false
-    for i = 1, data.damage do
-      if i > 1 and self.cancel_cost or not self:triggerable(event, target, player, data) then break end
-      self:doCost(event, target, player, data)
-    end
-  end,
-  on_cost = function(self, event, target, player, data)
-    local to = data.to
-    local room = player.room
-    if room:askToSkillInvoke(player, { skill_name = self.name, prompt = "#wangxi-invoke::"..to.id }) then
-      room:doIndicate(player.id, {to.id})
-      return true
-    end
-    self.cancel_cost = true
-  end,
-  on_use = function(self, event, target, player, data)
-    local room = player.room
-    player:broadcastSkillInvoke(self.name)
-    local tos = {player}
-    table.insertIfNeed(tos, data.from)
-    table.insertIfNeed(tos, data.to)
-    room:sortByAction(tos)
-    for _, to in ipairs(tos) do
-      if not to.dead then
-        room:drawCards(to, 1, self.name)
-      end
-    end
-  end
-})
+}
 
-skill:addTest(function(room, me)
+wangxi:addEffect(fk.Damage, spec)
+wangxi:addEffect(fk.Damaged, spec)
+
+wangxi:addTest(function(room, me)
   local comp2 = room.players[2] ---@type ServerPlayer, ServerPlayer
-  FkTest.runInRoom(function() room:handleAddLoseSkills(me, skill.name) end)
+  FkTest.runInRoom(function() room:handleAddLoseSkills(me, wangxi.name) end)
 
   local slash = Fk:getCardById(1)
   FkTest.setNextReplies(me, { "__cancel", "1" })
@@ -111,4 +78,4 @@ skill:addTest(function(room, me)
   lu.assertEquals(#me:getCardIds("h"), 2)
 end)
 
-return skill
+return wangxi

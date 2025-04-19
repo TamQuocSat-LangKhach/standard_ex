@@ -6,25 +6,27 @@ Fk:loadTranslationTable{
   ["$ex__yingzi2"] = "伯符，且看我这一手！",
 }
 
-local skill = fk.CreateSkill{
+local yingzi = fk.CreateSkill{
   name = "ex__yingzi",
-  tags = { Skill.Compulsory }
+  tags = { Skill.Compulsory },
 }
 
-skill:addEffect(fk.DrawNCards, {
+yingzi:addEffect(fk.DrawNCards, {
   anim_type = "drawcard",
   on_use = function(self, event, target, player, data)
     data.n = data.n + 1
   end,
-}):addEffect('maxcards', {
+})
+
+yingzi:addEffect("maxcards", {
   fixed_func = function(self, player)
-    if player:hasShownSkill(skill.name) then
+    if player:hasShownSkill(yingzi.name) then
       return player.maxHp
     end
   end
 })
 
-skill:addTest(function(room, me)
+yingzi:addTest(function(room, me)
   FkTest.runInRoom(function()
     room:handleAddLoseSkills(me, "ex__yingzi")
   end)
@@ -39,4 +41,4 @@ skill:addTest(function(room, me)
   lu.assertEquals(#me:getCardIds("h"), me.maxHp)
 end)
 
-return skill
+return yingzi

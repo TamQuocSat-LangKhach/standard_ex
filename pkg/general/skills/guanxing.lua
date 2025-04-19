@@ -7,14 +7,14 @@ Fk:loadTranslationTable{
   ["$ex__guanxing2"] = "星途莫测，细细推敲。",
 }
 
-local skill = fk.CreateSkill{
+local guanxing = fk.CreateSkill{
   name = "ex__guanxing",
 }
 
-skill:addEffect(fk.EventPhaseStart, {
+guanxing:addEffect(fk.EventPhaseStart, {
   anim_type = "control",
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and
+    return target == player and player:hasSkill(guanxing.name) and
     (player.phase == Player.Start or (player.phase == Player.Finish and player:getMark("guanxing-turn") > 0))
   end,
   on_use = function(self, event, target, player, data)
@@ -26,4 +26,4 @@ skill:addEffect(fk.EventPhaseStart, {
   end,
 })
 
-return skill
+return guanxing

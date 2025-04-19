@@ -10,54 +10,63 @@ Fk:loadTranslationTable{
   ["$ex__fanjian2"] = "抉择吧！在苦与痛的地狱中！",
 }
 
-local skill = fk.CreateSkill{
+local fanjian = fk.CreateSkill{
   name = "ex__fanjian",
 }
 
-skill:addEffect('active', {
+fanjian:addEffect("active", {
   anim_type = "control",
   card_num = 1,
   target_num = 1,
   prompt = "#ex__fanjian",
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+    return player:usedSkillTimes(fanjian.name, Player.HistoryPhase) == 0
   end,
-  card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) == Card.PlayerHand
+  card_filter = function(self, player, to_select, selected)
+    return #selected == 0 and table.contains(player:getCardIds("h"), to_select)
   end,
-  target_filter = function(self, to_select, selected)
-    return #selected == 0 and to_select ~= Self.id
+  target_filter = function(self, player, to_select, selected)
+    return #selected == 0 and to_select ~= player
   end,
   on_use = function(self, room, effect)
+    local player = effect.from
+    local target = effect.tos[1]
     local cid = effect.cards[1]
-    local player = room:getPlayerById(effect.from)
     player:showCards(cid)
     if player.dead then return end
     local suit = Fk:getCardById(cid).suit
     local suitString = Fk:getCardById(cid):getSuitString(true)
-    local target = room:getPlayerById(effect.tos[1])
-    room:obtainCard(target.id, cid, true, fk.ReasonGive)
+    room:obtainCard(target, cid, true, fk.ReasonGive, player, fanjian.name)
     if target.dead then return end
     local choices = { "ex__fanjian_show:::" .. suitString, "loseHp" }
-    if target.hp <= 0 then table.remove(choices) end
-    if (target:isKongcheng() and table.every(target:getCardIds(Player.Equip), function (id)
+    if target.hp <= 0 then
+      table.remove(choices, 2)
+    end
+    if (target:isKongcheng() and table.every(target:getCardIds("e"), function (id)
       return Fk:getCardById(id).suit ~= suit
-    end)) or suit == Card.NoSuit then table.remove(choices, 1) end
+    end)) or suit == Card.NoSuit then
+      table.remove(choices, 1)
+    end
     if #choices == 0 then return end
-    local choice = room:askToChoice(target, { choices = choices, skill_name = skill.name })
+    local choice = room:askToChoice(target, {
+      choices = choices,
+      skill_name = fanjian.name,
+    })
     if choice == "loseHp" then
-      room:loseHp(target, 1, skill.name)
+      room:loseHp(target, 1, fanjian.name)
     else
       local cards = target:getCardIds(Player.Hand)
       target:showCards(cards)
       room:delay(500)
       if target.dead then return end
-      local discards = table.filter(target:getCardIds{ Player.Hand, Player.Equip }, function(id)
-        return Fk:getCardById(id).suit == suit and not target:prohibitDiscard(Fk:getCardById(id))
+      local discards = table.filter(target:getCardIds("he"), function(id)
+        return Fk:getCardById(id).suit == suit and not target:prohibitDiscard(id)
       end)
-      room:throwCard(discards, skill.name, target, target)
+      if #discards > 0 then
+        room:throwCard(discards, fanjian.name, target, target)
+      end
     end
   end,
 })
 
-return skill
+return fanjian

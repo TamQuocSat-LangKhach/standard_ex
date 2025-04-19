@@ -6,24 +6,24 @@ Fk:loadTranslationTable{
   ["$wangzun2"] = "归顺于我，封爵赏地。",
 }
 
-local skill = fk.CreateSkill{
+local wangzun = fk.CreateSkill{
   name = "wangzun",
 }
 
-skill:addEffect(fk.EventPhaseStart, {
+wangzun:addEffect(fk.EventPhaseStart, {
   anim_type = "drawcard",
   can_trigger = function(self, event, target, player, data)
-    return target.phase == Player.Start and player:hasSkill(skill.name) and target.role == "lord"
+    return target.phase == Player.Start and player:hasSkill(wangzun.name) and target.role == "lord"
   end,
   on_use = function(self, event, target, player, data)
-    player:drawCards(1, skill.name)
+    player:drawCards(1, wangzun.name)
     if not target.dead and target:getMaxCards() > 0 then
       player.room:addPlayerMark(target, MarkEnum.MinusMaxCardsInTurn)
     end
   end,
 })
 
-skill:addTest(function(room, me)
+wangzun:addTest(function(room, me)
   local comp2 = room.players[2]
   FkTest.runInRoom(function()
     room:handleAddLoseSkills(me, "wangzun")
@@ -38,4 +38,4 @@ skill:addTest(function(room, me)
   lu.assertEquals(#comp2:getCardIds("h"), 0)
 end)
 
-return skill
+return wangzun

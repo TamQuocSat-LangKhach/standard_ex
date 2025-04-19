@@ -12,11 +12,11 @@ Fk:loadTranslationTable{
   ["$ex__guose2"] = "还没到休息的时候！",
 }
 
-local skill = fk.CreateSkill{
+local guose = fk.CreateSkill{
   name = "ex__guose",
 }
 
-skill:addEffect('active', {
+guose:addEffect("active", {
   anim_type = "control",
   card_num = 1,
   target_num = 1,
@@ -24,11 +24,9 @@ skill:addEffect('active', {
     return "#"..self.interaction.data
   end,
   can_use = function(self, player)
-    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+    return player:usedSkillTimes(guose.name, Player.HistoryPhase) == 0
   end,
-  interaction = function()
-    return UI.ComboBox {choices = {"ex__guose_use" , "ex__guose_throw"}}
-  end,
+  interaction = UI.ComboBox {choices = {"ex__guose_use" , "ex__guose_throw"}},
   card_filter = function(self, player, to_select, selected)
     if #selected > 0 or not self.interaction.data or Fk:getCardById(to_select).suit ~= Card.Diamond then return false end
     if self.interaction.data == "ex__guose_use" then
@@ -36,39 +34,50 @@ skill:addEffect('active', {
       card:addSubcard(to_select)
       return player:canUse(card) and not player:prohibitUse(card)
     else
-      return not player:prohibitDiscard(Fk:getCardById(to_select))
+      return not player:prohibitDiscard(to_select)
     end
   end,
   target_filter = function(self, player, to_select, selected, cards)
     if #cards ~= 1 or #selected > 0 or not self.interaction.data then return false end
-    local target = Fk:currentRoom():getPlayerById(to_select)
     if self.interaction.data == "ex__guose_use" then
       local card = Fk:cloneCard("indulgence")
       card:addSubcard(cards[1])
-      return to_select ~= player.id and not player:isProhibited(target, card)
+      return to_select ~= player and not player:isProhibited(to_select, card)
     else
-      return target:hasDelayedTrick("indulgence")
+      return to_select:hasDelayedTrick("indulgence")
     end
   end,
   on_use = function(self, room, effect)
-    local player = room:getPlayerById(effect.from)
-    local target = room:getPlayerById(effect.tos[1])
+    local player = effect.from
+    local target = effect.tos[1]
     if self.interaction.data == "ex__guose_use" then
-      room:useVirtualCard("indulgence", effect.cards, player, target, skill.name)
+      room:useVirtualCard("indulgence", effect.cards, player, target, guose.name)
     else
-      room:throwCard(effect.cards, skill.name, player, player)
-      for _, id in ipairs(target.player_cards[Player.Judge]) do
+      room:throwCard(effect.cards, guose.name, player, player)
+      local ids = {}
+      for _, id in ipairs(target:getCardIds("j")) do
         local card = target:getVirualEquip(id)
         if not card then card = Fk:getCardById(id) end
         if card.name == "indulgence" then
-          room:throwCard({id}, self.name, target, player)
+          table.insert(ids, id)
         end
+      end
+      if #ids > 0 then
+        local id = ids[1]
+        if #ids > 1 and not player.dead then
+          id = room:askToChooseCard(player, {
+            target = target,
+            flag = { card_data = {{ guose.name, ids }} },
+            skill_name = guose.name,
+          })
+        end
+        room:throwCard(id, guose.name, target, player)
       end
     end
     if not player.dead then
-      player:drawCards(1, skill.name)
+      player:drawCards(1, guose.name)
     end
   end,
 })
 
-return skill
+return guose
