@@ -24,7 +24,7 @@ jianxiong:addEffect(fk.Damaged, {
 })
 
 jianxiong:addTest(function(room, me)
-  local comp2 = room.players[2] ---@type ServerPlayer, ServerPlayer
+  local comp2 = room.players[2] ---@type ServerPlayer
   FkTest.runInRoom(function() room:handleAddLoseSkills(me, jianxiong.name) end)
 
   local slash = Fk:getCardById(1)

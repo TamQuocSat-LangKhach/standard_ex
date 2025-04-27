@@ -22,7 +22,7 @@ biyue:addEffect(fk.EventPhaseStart, {
 
 biyue:addTest(function(room, me)
   FkTest.runInRoom(function()
-    room:handleAddLoseSkills(me, "ex__biyue")
+    room:handleAddLoseSkills(me, biyue.name)
   end)
 
   FkTest.setNextReplies(me, { "1", "1" })

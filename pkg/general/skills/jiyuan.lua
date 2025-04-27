@@ -69,4 +69,36 @@ jiyuan:addEffect(fk.AfterCardsMove, {
   end,
 })
 
+jiyuan:addTest(function(room, me)
+  local comp2 = room.players[2] ---@type ServerPlayer
+  FkTest.runInRoom(function()
+    room:handleAddLoseSkills(me, jiyuan.name)
+  end)
+  FkTest.runInRoom(function()
+    me:drawCards(2)
+  end)
+  FkTest.setNextReplies(me, { "1", "1", "__cancel" })
+
+  FkTest.runInRoom(function()
+    room:obtainCard(comp2, me:getCardIds("h"), false, fk.ReasonGive, me)
+  end)
+
+  lu.assertEquals(#comp2:getCardIds("h"), 3)
+
+  -- local peach = room:getCardsFromPileByRule("peach")
+  -- FkTest.runInRoom(function()
+  --   room:obtainCard(me, peach)
+  -- end)
+  -- FkTest.setNextReplies(me, { json.encode {
+  --   card = peach[1],
+  --   targets = { me.id }
+  -- }})
+
+  -- FkTest.runInRoom(function()
+  --   room:loseHp(me, me.hp)
+  -- end)
+
+  -- lu.assertEquals(#me:getCardIds("h"), 1)
+end)
+
 return jiyuan

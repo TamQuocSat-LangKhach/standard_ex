@@ -33,4 +33,51 @@ jiuyuan:addEffect(fk.TargetSpecifying, {
   end,
 })
 
+jiuyuan:addTest(function(room, me)
+  local comp2 = room.players[2] ---@type ServerPlayer
+  FkTest.runInRoom(function()
+    room:handleAddLoseSkills(me, jiuyuan.name)
+    room:changeKingdom(comp2, "shu")
+  end)
+  FkTest.runInRoom(function()
+    room:loseHp(me, 2)
+    room:loseHp(comp2, 1)
+  end)
+  local hp1 = me.hp
+  local hp2 = comp2.hp
+  FkTest.setNextReplies(comp2, { "1", "1" })
+
+  local peach = room:printCard("peach")
+  FkTest.runInRoom(function()
+    room:useCard{
+      from = comp2,
+      tos = { comp2 },
+      card = peach,
+    }
+  end)
+
+  lu.assertEquals(me.hp, hp1)
+  lu.assertEquals(comp2.hp, hp2 + 1)
+  lu.assertEquals(#comp2:getCardIds("h"), 0)
+
+  hp1 = me.hp
+  hp2 = comp2.hp
+
+  FkTest.runInRoom(function()
+    room:changeKingdom(comp2, "wu")
+  end)
+
+  FkTest.runInRoom(function()
+    room:useCard{
+      from = comp2,
+      tos = { comp2 },
+      card = peach,
+    }
+  end)
+
+  lu.assertEquals(me.hp, hp1 + 1)
+  lu.assertEquals(comp2.hp, hp2)
+  lu.assertEquals(#comp2:getCardIds("h"), 1)
+end)
+
 return jiuyuan
