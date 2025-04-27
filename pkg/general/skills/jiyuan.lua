@@ -23,10 +23,11 @@ jiyuan:addEffect(fk.EnterDying, {
       prompt = "#jiyuan-trigger::" .. target.id,
     }) then
       event:setCostData(self, {tos = {target}})
+      return true
     end
   end,
   on_use = function(self, event, target, player, data)
-    target:drawCards(1, jiyuan.name)
+    event:getCostData(self).tos[1]:drawCards(1, jiyuan.name)
   end,
 })
 
@@ -73,6 +74,7 @@ jiyuan:addTest(function(room, me)
   local comp2 = room.players[2] ---@type ServerPlayer
   FkTest.runInRoom(function()
     room:handleAddLoseSkills(me, jiyuan.name)
+    -- room:addSkill("game_rule")
   end)
   FkTest.runInRoom(function()
     me:drawCards(2)
@@ -85,20 +87,20 @@ jiyuan:addTest(function(room, me)
 
   lu.assertEquals(#comp2:getCardIds("h"), 3)
 
-  -- local peach = room:getCardsFromPileByRule("peach")
-  -- FkTest.runInRoom(function()
-  --   room:obtainCard(me, peach)
-  -- end)
-  -- FkTest.setNextReplies(me, { json.encode {
-  --   card = peach[1],
-  --   targets = { me.id }
-  -- }})
+  local peach = room:getCardsFromPileByRule("peach")
+  FkTest.runInRoom(function()
+    room:obtainCard(me, peach)
+  end)
+  FkTest.setNextReplies(me, { "1", json.encode {
+    card = peach[1],
+    targets = { me.id }
+  }})
 
-  -- FkTest.runInRoom(function()
-  --   room:loseHp(me, me.hp)
-  -- end)
+  FkTest.runInRoom(function()
+    room:loseHp(me, me.hp)
+  end)
 
-  -- lu.assertEquals(#me:getCardIds("h"), 1)
+  lu.assertEquals(#me:getCardIds("h"), 1)
 end)
 
 return jiyuan
