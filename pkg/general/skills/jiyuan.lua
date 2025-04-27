@@ -79,7 +79,7 @@ jiyuan:addTest(function(room, me)
   FkTest.runInRoom(function()
     me:drawCards(2)
   end)
-  FkTest.setNextReplies(me, { "1", "1", "__cancel" })
+  FkTest.setNextReplies(me, { "1", "1" })
 
   FkTest.runInRoom(function()
     room:obtainCard(comp2, me:getCardIds("h"), false, fk.ReasonGive, me)
